@@ -20,11 +20,16 @@ header{
   position: fixed;
   top: 0;
   right: 0;
-} 
+  z-index: 1;
+}
+body{
+  background: #e5e5e5;
+}
 main{
-  background-color: #e5e5e5;
-  width: 100%;
-  height: 100%;
+  background-color: #FFF;
+  width: calc(100% - 16px);
+  position: relative;
+  /* height: 100%; */
 } 
 
 button{
@@ -39,7 +44,7 @@ button.filter {
   background-color: #FFF;
   gap: 8px;
   color: var(--font-color-inactive-button);
-  border: 1px solid #D8DFE6;
+  border: 1px solid var(--thin-border-color);
 }
 
   
@@ -76,7 +81,7 @@ button.hamburger{
   margin: 0;
 }
 
-div.sidebar-header--buttons{
+div.main-header--buttons{
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -88,32 +93,65 @@ div.units-container{
   max-height:max-content;
 }
 
-@media only screen and (min-width: 600px){
-  header{
-    height: 48px;
-    flex-direction: row;
-    justify-content: space-between;
+div.sidebar-content{
+  border: 1px solid var(--thin-border-color);
+}
 
+div.input-container{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  input{
+    flex-grow: 1;
   }
 }
 
-aside {
-  min-height: 100%;
-  position: fixed;
-  left: 0;
-  top: 0;
-  overflow-x: hidden;
+@media only screen and (min-width: 768px){
+  header{
+    height: 48px;
+    flex-direction: row;
+    padding: 0px 16px;
+    justify-content: space-between;
+    width: calc(100% - 32px);
+    position: relative;
+  }
+  section{
+    position: relative;
+  }
+  main{
+    height: calc(100% - 64px);  
+    overflow: hidden;
+    margin: 8px;
+  }
+  section.sidebar.closed:not(.open){
+    display: none;
+  }
+  section.sidebar.open:not(.closed){
+    display: block;
+    padding: 16px 8px;
+    width: 45%;
+    height: calc(100% - 122px);
+  }
 
 }
 
-aside.sidebar.open:not(.closed){
+/* section {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow-x: hidden;
+  height: 100%
+} */
+
+section.sidebar.open{
   width: 0;
   background-color: #fff;
   border: 1px solid grey;
   padding: 16px 8px;
 }
 
-aside.sidebar.closed:not(.open){
+section.sidebar.closed{
   min-width: 48px;
   background-color: var(--background-header);
   display: flex;
@@ -121,8 +159,8 @@ aside.sidebar.closed:not(.open){
   align-items: center;
 }
 
-div.sidebar-header{
-  div.sidebar-header--text{
+div.main-header{
+  div.main-header--text{
 
     display: flex;
     align-items: center;

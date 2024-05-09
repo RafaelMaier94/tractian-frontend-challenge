@@ -39,14 +39,12 @@
       </div>
     </header>
     <main>
-    </main>
-    <aside class="sidebar open" id="sidebar--open">
-      <div class="sidebar-header">
-        <div class="sidebar-header--text">
+      <div class="main-header">
+        <div class="main-header--text">
           <h3>Ativos</h3>
           <span id="active-unit-name"></span>
         </div>
-        <div class="sidebar-header--buttons">
+        <div class="main-header--buttons">
           <button class="filter inactive" id="energy-sensor-filter">
             <svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12.9999 5.27216H9.06594L12.6034 0.802516C12.6767 0.707874 12.6106 0.570374 12.4909 0.570374H5.64273C5.59273 0.570374 5.54451 0.597159 5.51951 0.641802L0.892729 8.63287C0.837371 8.72752 0.905228 8.84716 1.01594 8.84716H4.13023L2.5338 15.2329C2.49987 15.3722 2.66773 15.4704 2.7713 15.3704L13.0981 5.5168C13.1909 5.4293 13.1284 5.27216 12.9999 5.27216ZM4.61059 11.9364L5.68737 7.63287H2.87666L6.26237 1.78645H10.2731L6.55344 6.48823H10.3213L4.61059 11.9364Z" fill="#2188FF"/>
@@ -64,16 +62,25 @@
               Crítico
             </span>
           </button>
-        </div>
-
+        </div>  
       </div>
-    </aside>
-    <aside class="sidebar closed" id="sidebar--closed">
-      <button class="hamburger">
-        <svg height="32px" id="Layer_1" style="enable-background:new 0 0 32 32;" version="1.1" viewBox="0 0 32 32" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-          <path d="M4,10h24c1.104,0,2-0.896,2-2s-0.896-2-2-2H4C2.896,6,2,6.896,2,8S2.896,10,4,10z M28,14H4c-1.104,0-2,0.896-2,2  s0.896,2,2,2h24c1.104,0,2-0.896,2-2S29.104,14,28,14z M28,22H4c-1.104,0-2,0.896-2,2s0.896,2,2,2h24c1.104,0,2-0.896,2-2  S29.104,22,28,22z" style="fill:#fff;"/>
-        </svg>
-      </button>
-    </aside>
+      <section class="sidebar open" id="sidebar--open">
+        <div class="sidebar-content">
+          <div class="input-container">
+            <input type="text" name="search" id="searchTxt" class="search-field" placeholder="Buscar Ativo ou Local"/>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.2127 12.3535L9.15493 8.29564C9.78462 7.48158 10.1252 6.48627 10.1252 5.43939C10.1252 4.18627 9.63618 3.01127 8.75181 2.12533C7.86743 1.23939 6.68931 0.751892 5.43774 0.751892C4.18618 0.751892 3.00806 1.24095 2.12368 2.12533C1.23774 3.0097 0.750244 4.18627 0.750244 5.43939C0.750244 6.69095 1.23931 7.86908 2.12368 8.75345C3.00806 9.63939 4.18462 10.1269 5.43774 10.1269C6.48462 10.1269 7.47837 9.78627 8.29243 9.15814L12.3502 13.2144C12.3621 13.2263 12.3763 13.2357 12.3918 13.2422C12.4074 13.2486 12.424 13.2519 12.4409 13.2519C12.4577 13.2519 12.4744 13.2486 12.4899 13.2422C12.5055 13.2357 12.5196 13.2263 12.5315 13.2144L13.2127 12.5347C13.2246 12.5228 13.2341 12.5087 13.2405 12.4931C13.247 12.4776 13.2503 12.4609 13.2503 12.4441C13.2503 12.4272 13.247 12.4106 13.2405 12.395C13.2341 12.3795 13.2246 12.3654 13.2127 12.3535ZM7.91274 7.91439C7.25024 8.57533 6.37212 8.93939 5.43774 8.93939C4.50337 8.93939 3.62524 8.57533 2.96274 7.91439C2.30181 7.25189 1.93774 6.37377 1.93774 5.43939C1.93774 4.50502 2.30181 3.62533 2.96274 2.96439C3.62524 2.30345 4.50337 1.93939 5.43774 1.93939C6.37212 1.93939 7.25181 2.30189 7.91274 2.96439C8.57368 3.62689 8.93774 4.50502 8.93774 5.43939C8.93774 6.37377 8.57368 7.25345 7.91274 7.91439Z" fill="#363C44"/>
+            </svg>              
+          </div>
+        </div>
+      </section>
+      <section class="sidebar closed" id="sidebar--closed">
+        <button class="hamburger">
+          <svg height="32px" id="Layer_1" style="enable-background:new 0 0 32 32;" version="1.1" viewBox="0 0 32 32" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <path d="M4,10h24c1.104,0,2-0.896,2-2s-0.896-2-2-2H4C2.896,6,2,6.896,2,8S2.896,10,4,10z M28,14H4c-1.104,0-2,0.896-2,2  s0.896,2,2,2h24c1.104,0,2-0.896,2-2S29.104,14,28,14z M28,22H4c-1.104,0-2,0.896-2,2s0.896,2,2,2h24c1.104,0,2-0.896,2-2  S29.104,22,28,22z" style="fill:#fff;"/>
+          </svg>
+        </button>
+      </section>
+    </main>
   </body>
 </html>

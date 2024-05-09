@@ -1,0 +1,40 @@
+
+@keyframes scaleInX {
+    from { 
+    width: 0;
+    } to {
+    width: 90%;
+    }
+  }
+  
+  @keyframes scaleOutButtons {
+    from{
+      transform: scaleY(1)
+    }to{
+      transform: scaleY(0);
+    }
+  }
+  
+  @keyframes scaleOutY {
+    from {
+      height: 80px;
+    } to {
+      height: 0px;
+      display: none;
+    }
+  }
+  
+  .scaleOutButtons{
+    transition: height 0.5s;
+    animation: 0.25s forwards scaleOutButtons;
+  }
+  
+  .scaleOutY { 
+    transition: height 0.5s;
+    animation: 0.5s forwards scaleOutY;
+  }
+  
+  .scaleInX {
+    transition: width 0.5s;
+    animation: 0.5s forwards scaleInX;
+  }

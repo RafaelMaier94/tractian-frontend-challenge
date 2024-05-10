@@ -1,7 +1,7 @@
 :root {
-    --background-header: #17192D;
-    --background-button-active: #2188FF;
-    --background-button-inactive: #023B78;
-    --font-color-inactive-button: #383939;
-    --thin-border-color: #D8DFE6;
+    --blue-primary: #17192D;
+    --blue-secondary: #2188FF;
+    --blue-tertiary: #023B78;
+    --dark-grey: #383939;
+    --light-grey: #D8DFE6;
 }

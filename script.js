@@ -1,5 +1,12 @@
 document.addEventListener("DOMContentLoaded", function() {
     addListeners()
+    const innerWidth = window.innerWidth
+
+    if(innerWidth <= 768){
+        const assetsContainer = document.getElementById("assets-container");
+        assetsContainer.classList.remove("open")
+        assetsContainer.classList.add("closed")
+    }
 
 });
 
@@ -13,16 +20,62 @@ function addListeners (){
     if(sidebar){
         sidebar.addEventListener("click", handleSidebarOpen)
     }
+    const innerWidth = window.innerWidth
+    if (innerWidth <= 768){
+        console.log("inside")
+        const sections = document.getElementsByClassName('content-container');
+        Array.from(sections).forEach(section => {addEventListener('touchstart', handleTouchStart)})
+        Array.from(sections).forEach(section => {addEventListener('touchend', handleTouchEnd)})
+
+        Array.from(sections).forEach(section => {addEventListener('dragstart', handleTouchStart)})
+        Array.from(sections).forEach(section => {addEventListener('dragend', handleTouchEnd)})
+    }
 
 }
 
-const transformIn = "@keyframes transformIn {" +
-                    "from {" + 
-                    "transform: scaleX(0);" + 
-                    "}" + 
-                    "to {" + 
-                    "transform: scaleX(1);" + 
-                    "}}"
+let startInteractionPosition;
+const handleTouchStart = (event) => {
+    startInteractionPosition = event.touches[0].clientX
+}
+
+const handleTouchEnd = (event) => {
+    if (!startInteractionPosition) return;
+    const endInteractionPosition = event.changedTouches[0].clientX;
+    const diffPosition = endInteractionPosition - startInteractionPosition;
+    const newPosition = diffPosition > 0 ? -1 : 1;
+    const searchSection = document.getElementById("nav-bar")
+    const assetsSection = document.getElementById("assets-container")
+    if (newPosition === 1){
+        searchSection.classList.remove("open")
+        searchSection.classList.add("closed")
+
+        assetsSection.classList.remove("closed")
+        // assetsSection.classList.add("scaleInX")
+        assetsSection.classList.add("open")
+        assetsSection.classList.add("start-from-right")
+
+        setTimeout(() => {
+            // assetsSection.classList.remove("scaleInX")
+            assetsSection.classList.add("start-from-right")
+        }, 500)
+        
+    }else{
+
+        assetsSection.classList.remove("open")
+        assetsSection.classList.add("closed")
+
+        searchSection.classList.remove("closed")
+        searchSection.classList.add("scaleInX")
+        searchSection.classList.add("open")
+
+        setTimeout(() => {
+            searchSection.classList.remove("scaleInX")
+        }, 500)
+
+
+    }
+
+}
 
 const handleClickUnitButton = (event) => {
     const { currentTarget: { id } } = event
@@ -50,8 +103,7 @@ const handleClickUnitButton = (event) => {
 }
 
 const handleSidebarOpen = (event) => {
-    const sidebarClosed = document.getElementById('sidebar--closed');
-    const sidebarOpen = document.getElementById('sidebar--open');
+    const sidebarOpen = document.getElementById('nav-bar');
     const header = document.getElementsByTagName("header");
     const buttons = document.getElementsByClassName("unit");
     Array.from(buttons).forEach((button) => {
@@ -61,12 +113,9 @@ const handleSidebarOpen = (event) => {
     header[0].classList.add('scaleOutY')
     sidebarOpen.classList.add("scaleInX")
     sidebarOpen.style.display = 'block';
-    sidebarClosed.style.display = 'none';
 }
 
 const handleSidebarClose = (event) => {
-    const sidebarClosed = document.getElementById('sidebar--closed');
-    const sidebarOpen = document.getElementById('sidebar--open');
+    const sidebarOpen = document.getElementById('nav-bar');
     sidebarOpen.style.display = 'none';
-    sidebarClosed.style.display = 'block';
 }

@@ -1,0 +1,14 @@
+{
+  "name": "tractian",
+  "version": "1.0.0",
+  "description": "Tractian frontend challenge",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rafael Maier",
+  "license": "ISC",
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}

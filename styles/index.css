@@ -98,7 +98,7 @@ div.main-header--buttons{
   margin: 16px 0px;
 }
 
-div.units-container{
+div#companies-container{
   max-height:max-content;
 }
 
@@ -262,6 +262,7 @@ div.main-header{
       font-size: 20px;
       line-height: 28px;
       gap: 8px;
+      margin-right: 8px;
     }
     > span {
       font-weight: 200;

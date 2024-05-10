@@ -1,3 +1,6 @@
+import { getCompanies } from "./api.js";
+import { companiesSVG } from "./svgMappers.js";
+
 document.addEventListener("DOMContentLoaded", function() {
     addListeners()
     const innerWidth = window.innerWidth
@@ -9,13 +12,42 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
 });
+loadCompanies()
 
-function addListeners (){
+function createElementFromHTML(htmlString) {
+    let div = document.createElement('div');
+    div.innerHTML = htmlString.trim();
+  
+    // Change this to div.childNodes to support multiple top-level nodes.
+    return div.firstChild;
+  }
+
+async function loadCompanies () {
+    const companies = await getCompanies();
+    const companiesContainer = document.getElementById("companies-container");
+    companies.forEach(({name}) => {
+
+        const button = document.createElement("button")
+        button.className = "unit"
+        button.id = name
+
+        const text = document.createElement("span")
+        text.innerText = `${name} Unit`
+
+        button.appendChild(createElementFromHTML(companiesSVG))
+        button.appendChild(text)
+        companiesContainer.appendChild(button)
+    })
     const unitButtons = document.getElementsByClassName("unit")
     Array.from(unitButtons).forEach(button => {
         button.addEventListener('click', handleClickUnitButton)
     })
 
+}
+
+getCompanies();
+
+function addListeners (){
     const sidebar = document.getElementById('sidebar--closed');
     if(sidebar){
         sidebar.addEventListener("click", handleSidebarOpen)
@@ -77,14 +109,13 @@ const handleTouchEnd = (event) => {
 
 }
 
-const handleClickUnitButton = (event) => {
+function handleClickUnitButton (event) {
     const { currentTarget: { id } } = event
     const button = document.getElementById(event.currentTarget?.id)
     const isActive = (button) => button.classList.contains("active")
     const unitButtons = document.getElementsByClassName("unit")
     const activeUnit = document.getElementById('active-unit-name');
-    const unitText = `${id[0].toUpperCase()}${id.substring(1, id.length)} unit`
-    console.log({unitText})
+    const unitText = `${id} Unit`
     // activeUnit.innerHTML = 
     Array.from(unitButtons).forEach(button => {
         if (isActive(button) && button.id !== id){

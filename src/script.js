@@ -1,305 +1,353 @@
 import { getCompanies, getCompanyAssets, getCompanyLocations } from "./api.js";
 import { addTypesToAssets, dataTypeSVGMapper } from "./dataTypeMapper.js";
-import { arrowSVG, companiesSVG, componentSVG, locationsSVG } from "./svgMappers.js";
+import {
+  arrowSVG,
+  companiesSVG,
+  componentSVG,
+  locationsSVG,
+} from "./svgMappers.js";
 
+document.addEventListener("DOMContentLoaded", function () {
+  addListeners();
+  const innerWidth = window.innerWidth;
 
-document.addEventListener("DOMContentLoaded", function() {
-    addListeners()
-    const innerWidth = window.innerWidth
-
-    if(innerWidth <= 768){
-        const assetsContainer = document.getElementById("assets-container");
-        assetsContainer.classList.remove("open")
-        assetsContainer.classList.add("closed")
-    }
-
+  if (innerWidth <= 768) {
+    const assetsContainer = document.getElementById("assets-container");
+    assetsContainer.classList.remove("open");
+    assetsContainer.classList.add("closed");
+  }
 });
-loadCompanies()
+loadCompanies();
 
 function createElementFromHTML(htmlString) {
-    let div = document.createElement('div');
-    div.innerHTML = htmlString.trim();
-  
-    // Change this to div.childNodes to support multiple top-level nodes.
-    return div.firstChild;
+  let div = document.createElement("div");
+  div.innerHTML = htmlString.trim();
+
+  // Change this to div.childNodes to support multiple top-level nodes.
+  return div.firstChild;
 }
 
 async function loadCompanies() {
-    const companies = await getCompanies();
-    const companiesContainer = document.getElementById("companies-container");
-    companies.forEach(({name, id}) => {
+  const companies = await getCompanies();
+  const companiesContainer = document.getElementById("companies-container");
+  companies.forEach(({ name, id }) => {
+    const button = document.createElement("button");
+    button.className = "unit";
+    button.id = id;
 
-        const button = document.createElement("button")
-        button.className = "unit"
-        button.id = id
+    const text = document.createElement("span");
+    text.id = `${id}-name`;
+    text.innerText = `${name} Unit`;
 
-        const text = document.createElement("span")
-        text.id = `${id}-name`
-        text.innerText = `${name} Unit`
-
-        button.appendChild(createElementFromHTML(companiesSVG))
-        button.appendChild(text)
-        companiesContainer.appendChild(button)
-    })
-    const unitButtons = document.getElementsByClassName("unit")
-    Array.from(unitButtons).forEach(button => {
-        button.addEventListener('click', handleClickUnitButton)
-    })
-
+    button.appendChild(createElementFromHTML(companiesSVG));
+    button.appendChild(text);
+    companiesContainer.appendChild(button);
+  });
+  const unitButtons = document.getElementsByClassName("unit");
+  Array.from(unitButtons).forEach((button) => {
+    button.addEventListener("click", handleClickUnitButton);
+  });
 }
 
-loadLocations()
+loadLocations();
 
 async function loadLocations() {
-    const locations = await getCompanyLocations("662fd0ee639069143a8fc387");
-    console.log(locations)
+  const locations = await getCompanyLocations("662fd0ee639069143a8fc387");
+  console.log(locations);
 }
 
+function addListeners() {
+  const innerWidth = window.innerWidth;
+  if (innerWidth <= 768) {
+    console.log("inside");
+    const sections = document.getElementsByClassName("content-container");
+    Array.from(sections).forEach((section) => {
+      addEventListener("touchstart", handleTouchStart);
+    });
+    Array.from(sections).forEach((section) => {
+      addEventListener("touchend", handleTouchEnd);
+    });
 
-function addListeners (){
-    const innerWidth = window.innerWidth
-    if (innerWidth <= 768){
-        console.log("inside")
-        const sections = document.getElementsByClassName('content-container');
-        Array.from(sections).forEach(section => {addEventListener('touchstart', handleTouchStart)})
-        Array.from(sections).forEach(section => {addEventListener('touchend', handleTouchEnd)})
-
-        Array.from(sections).forEach(section => {addEventListener('dragstart', handleTouchStart)})
-        Array.from(sections).forEach(section => {addEventListener('dragend', handleTouchEnd)})
-    }
-    const searchField = document.getElementById("search-text");
-    searchField.addEventListener('input', debounce(handleSearch, 500))
-
-
+    Array.from(sections).forEach((section) => {
+      addEventListener("dragstart", handleTouchStart);
+    });
+    Array.from(sections).forEach((section) => {
+      addEventListener("dragend", handleTouchEnd);
+    });
+  }
+  const searchField = document.getElementById("search-text");
+  searchField.addEventListener("input", debounce(handleSearch, 500));
 }
-
 
 function debounce(func, delay) {
-    let timeoutId;
-    return function(...args) {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        func.apply(this, args);
-      }, delay);
-    };
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
 }
 
 function handleSearch(event) {
-    console.log(event)
-    console.log(event.target.value)
+  console.log(event);
+  console.log(event.target.value);
 }
 
 let startInteractionPosition;
 const handleTouchStart = (event) => {
-    startInteractionPosition = event.touches[0].clientX
-}
+  startInteractionPosition = event.touches[0].clientX;
+};
 
 const handleTouchEnd = (event) => {
-    if (!startInteractionPosition) return;
-    const endInteractionPosition = event.changedTouches[0].clientX;
-    const diffPosition = endInteractionPosition - startInteractionPosition;
-    const newPosition = diffPosition > 0 ? -1 : 1;
-    const searchSection = document.getElementById("nav-bar")
-    const assetsSection = document.getElementById("assets-container")
-    if (newPosition === 1){
-        searchSection.classList.remove("open")
-        searchSection.classList.add("closed")
+  if (!startInteractionPosition) return;
+  const endInteractionPosition = event.changedTouches[0].clientX;
+  const diffPosition = endInteractionPosition - startInteractionPosition;
+  const newPosition = diffPosition > 0 ? -1 : 1;
+  const searchSection = document.getElementById("nav-bar");
+  const assetsSection = document.getElementById("assets-container");
+  if (newPosition === 1) {
+    searchSection.classList.remove("open");
+    searchSection.classList.add("closed");
 
-        assetsSection.classList.remove("closed")
-        // assetsSection.classList.add("scaleInX")
-        assetsSection.classList.add("open")
-        assetsSection.classList.add("start-from-right")
+    assetsSection.classList.remove("closed");
+    // assetsSection.classList.add("scaleInX")
+    assetsSection.classList.add("open");
+    assetsSection.classList.add("start-from-right");
 
-        setTimeout(() => {
-            // assetsSection.classList.remove("scaleInX")
-            assetsSection.classList.add("start-from-right")
-        }, 500)
-        
-    }else{
+    setTimeout(() => {
+      // assetsSection.classList.remove("scaleInX")
+      assetsSection.classList.add("start-from-right");
+    }, 500);
+  } else {
+    assetsSection.classList.remove("open");
+    assetsSection.classList.add("closed");
 
-        assetsSection.classList.remove("open")
-        assetsSection.classList.add("closed")
+    searchSection.classList.remove("closed");
+    searchSection.classList.add("scaleInX");
+    searchSection.classList.add("open");
 
-        searchSection.classList.remove("closed")
-        searchSection.classList.add("scaleInX")
-        searchSection.classList.add("open")
+    setTimeout(() => {
+      searchSection.classList.remove("scaleInX");
+    }, 500);
+  }
+};
 
-        setTimeout(() => {
-            searchSection.classList.remove("scaleInX")
-        }, 500)
+async function handleClickUnitButton(event) {
+  const {
+    currentTarget: { id },
+  } = event;
+  const button = document.getElementById(event.currentTarget?.id);
+  const isActive = (button) => button.classList.contains("active");
 
+  const unitButtons = document.getElementsByClassName("unit");
+  const activeUnit = document.getElementById("active-unit-name");
+  const unitText = document.getElementById(`${id}-name`);
 
+  const assetsContainer =
+    document.getElementsByClassName("assets-container")[0];
+  assetsContainer.replaceChildren();
+
+  Array.from(unitButtons).forEach((button) => {
+    if (isActive(button) && button.id !== id) {
+      button.classList.remove("active");
     }
+  });
+  if (isActive(button)) {
+    button.classList.remove("active");
+    return;
+  }
+  if (activeUnit) {
+    activeUnit.innerText = ` / ${unitText.innerText}`;
+  }
+  button.classList.add("active");
 
+  const companyLocations = await getCompanyLocations(id);
+  const subLocations = companyLocations.map((el) =>
+    el.parentId ? { ...el, isLocation: true } : null
+  );
+  const assets = [
+    ...(await getCompanyAssets(id)),
+    ...subLocations.filter((el) => el),
+  ];
+  const unlinkedComponents = assets.filter(
+    (asset) => asset.sensorType && !asset.locationId && !asset.parentId
+  );
+  console.log({ companyLocations });
+  console.log({ subLocations });
+  renderLocations(companyLocations, assets);
+  renderUnlinkedComponents(unlinkedComponents, assetsContainer);
 }
 
-async function handleClickUnitButton (event) {
-    const { currentTarget: { id } } = event;
-    const button = document.getElementById(event.currentTarget?.id);
-    const isActive = (button) => button.classList.contains("active");
+function renderUnlinkedComponents(components, parent) {
+  components.forEach((component) => {
+    const button = document.createElement("button");
+    button.classList.add("component");
+    button.id = component.id;
+    button.innerText = component.name;
 
-    const unitButtons = document.getElementsByClassName("unit");
-    const activeUnit = document.getElementById('active-unit-name');
-    const unitText = document.getElementById(`${id}-name`);
+    const img = document.createElement("img");
+    img.src = "/assets/component.png";
+    img.width = 22;
 
-    const assetsContainer = document.getElementsByClassName("assets-container")[0];
-    assetsContainer.replaceChildren();
-    
-    Array.from(unitButtons).forEach(button => {
-        if (isActive(button) && button.id !== id){
-            button.classList.remove("active")
-        }
-    })
-    if(isActive(button)){
-        button.classList.remove("active")
-        return;
-    }
-    if(activeUnit){
-        activeUnit.innerText = ` / ${unitText.innerText}`
-    }
-    button.classList.add("active")
-
-    const companyLocations = await getCompanyLocations(id)
-    const assets = await getCompanyAssets(id);
-    const unlinkedComponents = assets.filter(asset => asset.sensorType && !asset.locationId && !asset.parentId)
-    const subLocations = companyLocations.map(el => (el.parentId ? {...el, isLocation: true} : null));
-    console.log({companyLocations})
-    console.log({subLocations})
-    renderLocations(companyLocations, assets)
-    renderUnlinkedComponents(unlinkedComponents, assetsContainer)
-
+    button.appendChild(img);
+    parent.appendChild(button);
+  });
 }
 
-function renderUnlinkedComponents (components, parent) {
-    components.forEach(component => {
-        const button = document.createElement("button");
-        button.classList.add("component");
-        button.id = component.id;
-        button.innerText = component.name
+function renderLocations(locations, assets) {
+  const parent = document.getElementsByClassName("assets-container")[0];
+  locations.forEach((location) => {
+    if (location.parentId) return;
+    const button = document.createElement("button");
+    const container = document.createElement("div");
+    container.classList.add("company-data-container");
+    const contentContainer = document.createElement("div");
+    contentContainer.classList.add("company-data-content");
+    contentContainer.style = "margin-left: 8px;";
 
-        const img = document.createElement('img');
-        img.src = "/assets/component.png"
-        img.width = 22
+    button.classList.add("company-data");
+    button.classList.add("closed");
+    button.id = location.id;
 
-        button.appendChild(img)
-        parent.appendChild(button)
-    })
+    const arrow = document.createElement("span");
+    arrow.classList.add("company-data-arrow");
+    arrow.appendChild(createElementFromHTML(arrowSVG));
+
+    const textSpan = document.createElement("span");
+    textSpan.innerText = location.name;
+
+    button.addEventListener("click", (event) =>
+      handleClickLocation(event, assets)
+    );
+
+    button.appendChild(arrow);
+    button.appendChild(createElementFromHTML(locationsSVG));
+    button.appendChild(textSpan);
+    container.appendChild(button);
+    container.appendChild(contentContainer);
+    parent.appendChild(container);
+  });
 }
 
-function renderLocations (locations, assets) {
-    const parent = document.getElementsByClassName("assets-container")[0];
-    locations.forEach((location) => {
-        if(location.parentId) return;
-        const button = document.createElement("button");
-        const container = document.createElement("div");
-        container.classList.add("company-data-container")
-        const contentContainer = document.createElement("div");
-        contentContainer.classList.add("company-data-content");
-        contentContainer.style = "margin-left: 8px;"
+const handleClickLocation = (event, assets) => {
+  const {
+    target: { id },
+  } = event;
+  const arrow = document.getElementById(id);
+  if (arrow.classList.contains("open")) {
+    arrow.classList.remove("open");
+    arrow.classList.add("closed");
+    arrow.nextElementSibling.replaceChildren();
+    return;
+  }
+  arrow.classList.remove("closed");
+  arrow.classList.add("open");
+  renderButtonsByType(assets, id);
+};
 
-        button.classList.add("company-data")
-        button.classList.add("closed")
-        button.id = location.id
-
-        const arrow = document.createElement("span");
-        arrow.classList.add("company-data-arrow");
-        arrow.appendChild(createElementFromHTML(arrowSVG));
-
-        const textSpan = document.createElement("span");
-        textSpan.innerText = location.name;
-
-        button.addEventListener("click", (event) => handleLocationsArrow(event, assets))
-
-        button.appendChild(arrow)
-        button.appendChild(createElementFromHTML(locationsSVG))
-        button.appendChild(textSpan)
-        container.appendChild(button);
-        container.appendChild(contentContainer);
-        parent.appendChild(container)
-    })
-}
-
-const handleClickLocation = (event) => {
-    
-}
-
-const handleLocationsArrow = (event, assets) => {
-    const { target: { id }} = event
-    const arrow = document.getElementById(id);
-    if(arrow.classList.contains("open")){
-        arrow.classList.remove("open")
-        arrow.classList.add("closed")
-        arrow.nextElementSibling.replaceChildren()
-        return;
-    } 
-    arrow.classList.remove("closed")
-    arrow.classList.add("open")
-    renderButtonsByType(assets, id)
-    // groupedAssets[id].forEach(asset => {
-    //     const button = document.createElement("button");
-    //     button.classList.add("location")
-    //     button.classList.add("closed")
-    // })
-
-}
+const groupAssets = (assets) => {
+  const groupedByLocation = Object.groupBy(
+    assets,
+    ({ locationId }) => locationId
+  );
+  const groupedByParent = Object.groupBy(assets, ({ parentId }) => parentId);
+  const groupedByLocationAndParent = {
+    ...groupedByLocation,
+    ...groupedByParent,
+  };
+  return groupedByLocationAndParent;
+};
 
 const renderButtonsByType = (assets, parentId) => {
-    const parent = document.getElementById(parentId).parentElement;
-    const parentContentContainer = parent.lastChild;
-    const style = parentContentContainer.currentStyle || window.getComputedStyle(parentContentContainer);
-    const marginLeft = style.marginLeft;
+  const parent = document.getElementById(parentId).parentElement;
+  const parentContentContainer = parent.lastChild;
 
-    const groupedByLocation = Object.groupBy(assets, ({locationId}) => locationId)
-    const assetsOnParentId = groupedByLocation[parentId]
-    const withTypeHints = addTypesToAssets(assetsOnParentId)
+  const groupedByLocationAndParent = groupAssets(assets);
+  const assetsOnParentId = groupedByLocationAndParent[parentId];
+  const withTypeHints = addTypesToAssets(assetsOnParentId);
 
-    withTypeHints.forEach(asset => {
-        const container = document.createElement("div");
-        container.classList.add("company-data-container")
-        container.style = `margin-left: ${marginLeft + 8}px;`
-        const contentContainer = document.createElement("div");
-        contentContainer.classList.add("company-data-content")
-        const button = document.createElement("button");
-        button.classList.add("company-data")
-        button.classList.add("closed")
-        button.id = asset.id
+  withTypeHints.forEach((asset) => {
+    const container = document.createElement("div");
+    container.classList.add("company-data-container");
+    const contentContainer = document.createElement("div");
+    contentContainer.classList.add("company-data-content");
+    const button = document.createElement("button");
+    button.classList.add("company-data");
+    button.classList.add("closed");
+    button.id = asset.id;
+    if(asset.type === "component"){
+        renderComponent(asset, parentContentContainer);
+        return;
+    }
+    const arrow = document.createElement("span");
+    arrow.classList.add("company-data-arrow");
+    arrow.appendChild(createElementFromHTML(arrowSVG));
 
-        const arrow = document.createElement("span");
-        arrow.classList.add("company-data-arrow");
-        arrow.appendChild(createElementFromHTML(arrowSVG));
+    const textSpan = document.createElement("span");
+    textSpan.innerText = asset.name;
 
-        const textSpan = document.createElement("span");
-        textSpan.innerText = asset.name;
+    button.addEventListener("click", (event) =>
+      handleClickLocation(event, assets)
+    );
 
-        button.addEventListener("click", (event) => handleLocationsArrow(event, assets))
+    button.appendChild(arrow);
+    const svg = dataTypeSVGMapper[asset.type];
+    if (!svg){
+        console.log(asset);
+    }
+    button.appendChild(createElementFromHTML(svg));
+    button.appendChild(textSpan);
 
-        button.appendChild(arrow)
-        const svg = dataTypeSVGMapper[asset.type]
-        button.appendChild(createElementFromHTML(svg))
-        button.appendChild(textSpan)
+    container.appendChild(button);
+    container.appendChild(contentContainer);
 
-        container.appendChild(button);
-        container.appendChild(contentContainer);
+    parentContentContainer.appendChild(container);
+  });
+};
 
-        parentContentContainer.appendChild(container)
-    })
+const renderComponent = (asset, parent) => {
+    const container = document.createElement("div");
+    container.classList.add("company-data-container");
 
+    const button = document.createElement("button");
+    button.classList.add("company-data");
+    button.classList.add("closed");
+    button.style = "margin-left: 16px;"
+
+    const textSpan = document.createElement("span");
+    textSpan.innerText = asset.name;
+
+    button.addEventListener("click", (event) =>
+      console.log(event)
+    );
+
+    const img = document.createElement("img");
+    img.src = "/assets/component.png";
+    img.width = 22;
+
+    button.appendChild(img);
+    button.appendChild(textSpan);
+
+    container.appendChild(button);
+
+    parent.appendChild(container);
 }
 
 const handleSidebarOpen = (event) => {
-    const sidebarOpen = document.getElementById('nav-bar');
-    const header = document.getElementsByTagName("header");
-    const buttons = document.getElementsByClassName("unit");
-    Array.from(buttons).forEach((button) => {
-        button.classList.add('scaleOutButtons')
-    })
-    // buttonsContainer[0].classList.add('scaleOutY')
-    header[0].classList.add('scaleOutY')
-    sidebarOpen.classList.add("scaleInX")
-    sidebarOpen.style.display = 'block';
-}
+  const sidebarOpen = document.getElementById("nav-bar");
+  const header = document.getElementsByTagName("header");
+  const buttons = document.getElementsByClassName("unit");
+  Array.from(buttons).forEach((button) => {
+    button.classList.add("scaleOutButtons");
+  });
+  // buttonsContainer[0].classList.add('scaleOutY')
+  header[0].classList.add("scaleOutY");
+  sidebarOpen.classList.add("scaleInX");
+  sidebarOpen.style.display = "block";
+};
 
 const handleSidebarClose = (event) => {
-    const sidebarOpen = document.getElementById('nav-bar');
-    sidebarOpen.style.display = 'none';
-}
+  const sidebarOpen = document.getElementById("nav-bar");
+  sidebarOpen.style.display = "none";
+};

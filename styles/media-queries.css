@@ -42,6 +42,12 @@
         pointer-events: none;
       }
       }
+      div.company-data-content{
+        margin-left: 8px;
+      }
+      div.company-data{
+        margin-left: 8px
+      }
       button.company-data.closed{
         ~ div.company-data-content{
           display: none;

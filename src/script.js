@@ -1,5 +1,7 @@
-import { getCompanies, getCompanyLocations } from "./api.js";
-import { arrowSVG, companiesSVG, locationsSVG } from "./svgMappers.js";
+import { getCompanies, getCompanyAssets, getCompanyLocations } from "./api.js";
+import { addTypesToAssets, dataTypeSVGMapper } from "./dataTypeMapper.js";
+import { arrowSVG, companiesSVG, componentSVG, locationsSVG } from "./svgMappers.js";
+
 
 document.addEventListener("DOMContentLoaded", function() {
     addListeners()
@@ -67,8 +69,7 @@ function addListeners (){
     }
     const searchField = document.getElementById("search-text");
     searchField.addEventListener('input', debounce(handleSearch, 500))
-    const locationsButtons = document.getElementsByClassName("location");
-    Array.from(locationsButtons).forEach(button => button.addEventListener("click", handleLocationsArrow))
+
 
 }
 
@@ -131,14 +132,19 @@ const handleTouchEnd = (event) => {
     }
 
 }
+
 async function handleClickUnitButton (event) {
     const { currentTarget: { id } } = event;
     const button = document.getElementById(event.currentTarget?.id);
     const isActive = (button) => button.classList.contains("active");
+
     const unitButtons = document.getElementsByClassName("unit");
     const activeUnit = document.getElementById('active-unit-name');
-    const unitText = document.getElementById(`${id}-name`)
-    // activeUnit.innerHTML = 
+    const unitText = document.getElementById(`${id}-name`);
+
+    const assetsContainer = document.getElementsByClassName("assets-container")[0];
+    assetsContainer.replaceChildren();
+    
     Array.from(unitButtons).forEach(button => {
         if (isActive(button) && button.id !== id){
             button.classList.remove("active")
@@ -152,47 +158,132 @@ async function handleClickUnitButton (event) {
         activeUnit.innerText = ` / ${unitText.innerText}`
     }
     button.classList.add("active")
-    const locations = await getCompanyLocations(id)
-    renderLocations(locations)
+
+    const companyLocations = await getCompanyLocations(id)
+    const assets = await getCompanyAssets(id);
+    const unlinkedComponents = assets.filter(asset => asset.sensorType && !asset.locationId && !asset.parentId)
+    const subLocations = companyLocations.map(el => (el.parentId ? {...el, isLocation: true} : null));
+    console.log({companyLocations})
+    console.log({subLocations})
+    renderLocations(companyLocations, assets)
+    renderUnlinkedComponents(unlinkedComponents, assetsContainer)
+
 }
 
-const handleLocationsArrow = (event) => {
-    console.log(event.target)
-    const arrow = document.getElementById(event.target.id);
-    if(arrow.classList.contains("open")){
-        arrow.classList.remove("open")
-        arrow.classList.add("closed")
-    } else {
-        arrow.classList.remove("closed")
-        arrow.classList.add("open")
-    }
-}
-
-const renderLocations = (locations) => {
-    const parent = document.getElementsByClassName("assets-container")[0];
-    console.log(parent)
-    locations.forEach((location) => {
+function renderUnlinkedComponents (components, parent) {
+    components.forEach(component => {
         const button = document.createElement("button");
-        button.classList.add("location")
+        button.classList.add("component");
+        button.id = component.id;
+        button.innerText = component.name
+
+        const img = document.createElement('img');
+        img.src = "/assets/component.png"
+        img.width = 22
+
+        button.appendChild(img)
+        parent.appendChild(button)
+    })
+}
+
+function renderLocations (locations, assets) {
+    const parent = document.getElementsByClassName("assets-container")[0];
+    locations.forEach((location) => {
+        if(location.parentId) return;
+        const button = document.createElement("button");
+        const container = document.createElement("div");
+        container.classList.add("company-data-container")
+        const contentContainer = document.createElement("div");
+        contentContainer.classList.add("company-data-content");
+        contentContainer.style = "margin-left: 8px;"
+
+        button.classList.add("company-data")
         button.classList.add("closed")
         button.id = location.id
-        
+
         const arrow = document.createElement("span");
-        arrow.classList.add("location-arrow");
+        arrow.classList.add("company-data-arrow");
         arrow.appendChild(createElementFromHTML(arrowSVG));
 
         const textSpan = document.createElement("span");
         textSpan.innerText = location.name;
 
-        button.addEventListener("click", handleLocationsArrow)
+        button.addEventListener("click", (event) => handleLocationsArrow(event, assets))
 
         button.appendChild(arrow)
         button.appendChild(createElementFromHTML(locationsSVG))
         button.appendChild(textSpan)
-        console.log(parent)
-
-        parent.appendChild(button)
+        container.appendChild(button);
+        container.appendChild(contentContainer);
+        parent.appendChild(container)
     })
+}
+
+const handleClickLocation = (event) => {
+    
+}
+
+const handleLocationsArrow = (event, assets) => {
+    const { target: { id }} = event
+    const arrow = document.getElementById(id);
+    if(arrow.classList.contains("open")){
+        arrow.classList.remove("open")
+        arrow.classList.add("closed")
+        arrow.nextElementSibling.replaceChildren()
+        return;
+    } 
+    arrow.classList.remove("closed")
+    arrow.classList.add("open")
+    renderButtonsByType(assets, id)
+    // groupedAssets[id].forEach(asset => {
+    //     const button = document.createElement("button");
+    //     button.classList.add("location")
+    //     button.classList.add("closed")
+    // })
+
+}
+
+const renderButtonsByType = (assets, parentId) => {
+    const parent = document.getElementById(parentId).parentElement;
+    const parentContentContainer = parent.lastChild;
+    const style = parentContentContainer.currentStyle || window.getComputedStyle(parentContentContainer);
+    const marginLeft = style.marginLeft;
+
+    const groupedByLocation = Object.groupBy(assets, ({locationId}) => locationId)
+    const assetsOnParentId = groupedByLocation[parentId]
+    const withTypeHints = addTypesToAssets(assetsOnParentId)
+
+    withTypeHints.forEach(asset => {
+        const container = document.createElement("div");
+        container.classList.add("company-data-container")
+        container.style = `margin-left: ${marginLeft + 8}px;`
+        const contentContainer = document.createElement("div");
+        contentContainer.classList.add("company-data-content")
+        const button = document.createElement("button");
+        button.classList.add("company-data")
+        button.classList.add("closed")
+        button.id = asset.id
+
+        const arrow = document.createElement("span");
+        arrow.classList.add("company-data-arrow");
+        arrow.appendChild(createElementFromHTML(arrowSVG));
+
+        const textSpan = document.createElement("span");
+        textSpan.innerText = asset.name;
+
+        button.addEventListener("click", (event) => handleLocationsArrow(event, assets))
+
+        button.appendChild(arrow)
+        const svg = dataTypeSVGMapper[asset.type]
+        button.appendChild(createElementFromHTML(svg))
+        button.appendChild(textSpan)
+
+        container.appendChild(button);
+        container.appendChild(contentContainer);
+
+        parentContentContainer.appendChild(container)
+    })
+
 }
 
 const handleSidebarOpen = (event) => {

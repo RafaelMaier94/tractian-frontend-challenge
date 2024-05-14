@@ -4,11 +4,18 @@
   "description": "Tractian frontend challenge",
   "main": "index.html",
   "scripts": {
+    "start": "yarn run http-server ./dist/application.js",
+    "build-dist": "./node_modules/typescript/bin/tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Rafael Maier",
   "license": "ISC",
   "dependencies": {
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "source-map-support": "^0.5.21",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@types/source-map-support": "^0.5.10"
   }
 }

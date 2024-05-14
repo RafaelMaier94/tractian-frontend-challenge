@@ -30,7 +30,7 @@
       height: 100%;
       align-items: center;
     }
-    button.location{
+    button.company-data{
       display: flex;
       align-items: center;
       gap: 8px;
@@ -42,12 +42,15 @@
         pointer-events: none;
       }
       }
-      button.location.closed{
-        > span.location-arrow{
+      button.company-data.closed{
+        ~ div.company-data-content{
+          display: none;
+        }
+        > span.company-data-arrow{
           transform: rotateZ(-90deg);
         }
       }
-      button.location.open{
+      button.company-data.open{
       
       }
 

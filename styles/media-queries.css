@@ -81,6 +81,9 @@
       flex-direction: row;
       justify-content: space-between;
     }
+    span.asset-gateway{
+      margin-left:2px;
+    }
     div.asset-details{
       display: grid;
       grid-template-columns: 1fr 1fr;

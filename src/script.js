@@ -176,10 +176,10 @@ async function handleClickUnitButton(event) {
   console.log({ companyLocations });
   console.log({ subLocations });
   renderLocations(companyLocations, assets);
-  renderUnlinkedComponents(unlinkedComponents, assetsContainer);
+  renderUnlinkedComponents(unlinkedComponents, assetsContainer, assets);
 }
 
-function renderUnlinkedComponents(components, parent) {
+function renderUnlinkedComponents(components, parent, assets) {
   components.forEach((component) => {
     const button = document.createElement("button");
     button.classList.add("component");
@@ -191,7 +191,9 @@ function renderUnlinkedComponents(components, parent) {
     img.width = 22;
 
     button.appendChild(img);
+    button.addEventListener('click', (event) => handleClickComponent(event, assets))
     parent.appendChild(button);
+
   });
 }
 
@@ -277,7 +279,7 @@ const renderButtonsByType = (assets, parentId) => {
     button.classList.add("closed");
     button.id = asset.id;
     if(asset.type === "component"){
-        renderComponent(asset, parentContentContainer);
+        renderComponent(asset, parentContentContainer, assets);
         return;
     }
     const arrow = document.createElement("span");
@@ -306,11 +308,12 @@ const renderButtonsByType = (assets, parentId) => {
   });
 };
 
-const renderComponent = (asset, parent) => {
+const renderComponent = (asset, parent, assets) => {
     const container = document.createElement("div");
     container.classList.add("company-data-container");
 
     const button = document.createElement("button");
+    button.id = asset.id;
     button.classList.add("company-data");
     button.classList.add("closed");
     button.style = "margin-left: 16px;"
@@ -319,7 +322,7 @@ const renderComponent = (asset, parent) => {
     textSpan.innerText = asset.name;
 
     button.addEventListener("click", (event) =>
-      console.log(event)
+        handleClickComponent(event, assets)
     );
 
     const img = document.createElement("img");
@@ -332,6 +335,27 @@ const renderComponent = (asset, parent) => {
     container.appendChild(button);
 
     parent.appendChild(container);
+}
+
+const handleClickComponent = (event, assets) => {
+    const { target: { id }} = event;
+    const selectedComponent = assets.find(el => el.id === id)
+    console.log({selectedComponent})
+    const title = document.getElementById("asset-title")
+    const responsible = document.getElementById("asset-responsible")
+    const responsibleAvatar = document.getElementById("asset-responsible-avatar")
+    const type = document.getElementById("asset-type")
+    const sensor = document.getElementById("asset-sensor")
+    const gateway = document.getElementById("asset-gateway")
+
+    title.innerText = selectedComponent.name
+    if(selectedComponent.responsible){
+        responsible.innerText = selectedComponent.responsible
+        responsibleAvatar.innerText = selectedComponent.responsible[0].toUpperCase()
+    }
+    type.innerText = selectedComponent.type
+    sensor.innerText = selectedComponent.sensorId
+    gateway.innerText = selectedComponent.gatewayId
 }
 
 const handleSidebarOpen = (event) => {

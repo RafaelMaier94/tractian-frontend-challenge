@@ -156,6 +156,13 @@ p.detail-name{
   gap: 4px;
 }
 
+/* p.detail-name#asset-sensor, p.detail-name#asset-sensor{
+  font-weight: 200;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+} */
+
 h3.title{
   padding: 16px;
 }
@@ -164,6 +171,7 @@ h3.title{
 }
 #responsible{
   grid-area: resp;
+  padding-top: 16px;
 }
 #sensor{
   grid-area: sensor;
@@ -174,12 +182,19 @@ h3.title{
 #equipment-type{
   border-bottom: 1px solid var(--light-grey);
   grid-area: equip;
+  padding-bottom: 16px;
+}
+
+#grid-separator-responsible{
+  grid-area: sepresp;
+  height: 1px;
 
 }
-#grid-separator{
+
+#grid-separator-sensor{
   grid-area: sep;
   height: 1px;
-  margin-top: 8px;
+  margin:16px 0px;
 }
 .asset-details--container{
   display: flex;

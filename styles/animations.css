@@ -50,6 +50,7 @@
 .scale-in-height{
   transition: height 0.5s;
   animation: 0.5s forwards scaleInHeight;
+  overflow: hidden auto !important;
 }
 
 .scaleOutButtons {

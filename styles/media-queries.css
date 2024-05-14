@@ -19,7 +19,6 @@
       position: static;
     }
     section#assets-container{
-      flex-grow: 1;
     }
     div.full-container{
       max-width: none;

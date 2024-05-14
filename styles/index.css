@@ -54,6 +54,24 @@ button.filter {
   gap: 8px;
   color: var(--dark-grey);
   border: 1px solid var(--light-grey);
+  cursor: pointer;
+  user-select: text;
+  > * {
+    pointer-events: none;
+  }
+}
+
+button.filter.active:not(.inactive){
+  color: #FFF;
+  background-color: var(--blue-secondary);
+  transition: 0.25s;
+  >svg > path{
+    fill: #FFF; 
+  }
+}
+
+button.filter.inactive:not(.active){
+  transition: 0.25s;
 }
 
   
@@ -78,7 +96,7 @@ button.unit:focus {
 button.unit:not(.active){
   background-color: var(--blue-tertiary);
 }
-button.unit.active{
+button.unit.active:not(.inactive){
   background-color: var(--blue-secondary);
   transform: translateY(0rem);
   box-shadow: none;
@@ -110,10 +128,26 @@ div.content-container-content{
   border-radius: 4px;
 }
 
+span.status-display{
+  border-radius: 100%;
+  height: 8px;
+  width: 8px;
+}
+
+span.status-display.critical{
+  background-color: #ED3833;
+}
+
+span.status-display.operating{
+  background-color: #52C41A;
+}
+
 div.assets-container{
-  flex-grow: 1;
+  /* flex-grow: 1; */
   border-top: 1px solid var(--light-grey);
   border-radius: 4px;
+  height: 0;
+  overflow: hidden;
 }
 
 div.input-container{

@@ -2,6 +2,7 @@ import { getCompanies, getCompanyAssets, getCompanyLocations } from "./api.js";
 import { addTypesToAssets, dataTypeSVGMapper } from "./dataTypeMapper.js";
 import {
   arrowSVG,
+  boltSVG,
   companiesSVG,
   componentSVG,
   locationsSVG,
@@ -75,8 +76,25 @@ function addListeners() {
       addEventListener("dragend", handleTouchEnd);
     });
   }
+  const energySensorButton = document.getElementById("energy-sensor-filter");
+  energySensorButton.addEventListener("click", handleClickFilter)
+
+  const criticalButton = document.getElementById("critical-filter");
+  criticalButton.addEventListener("click", handleClickFilter)
+
   const searchField = document.getElementById("search-text");
   searchField.addEventListener("input", debounce(handleSearch, 500));
+}
+
+const handleClickFilter = (event) => {
+  const button = document.getElementById(event.target.id);
+    if(button.classList.contains("active")){
+        button.classList.remove("active")
+        button.classList.add("inactive")
+    }else{
+        button.classList.remove("inactive")
+        button.classList.add("active")
+    }
 }
 
 function debounce(func, delay) {
@@ -147,7 +165,7 @@ async function handleClickUnitButton(event) {
   const assetsContainer =
     document.getElementsByClassName("assets-container")[0];
   assetsContainer.replaceChildren();
-
+  assetsContainer.classList.remove("scale-in-height")
   Array.from(unitButtons).forEach((button) => {
     if (isActive(button) && button.id !== id) {
       button.classList.remove("active");
@@ -220,7 +238,7 @@ function renderLocations(locations, assets) {
     textSpan.innerText = location.name;
 
     button.addEventListener("click", (event) =>
-      handleClickLocation(event, assets)
+      handleClickLocationAsset(event, assets)
     );
 
     button.appendChild(arrow);
@@ -230,13 +248,15 @@ function renderLocations(locations, assets) {
     container.appendChild(contentContainer);
     parent.appendChild(container);
   });
+  parent.classList.add("scale-in-height")
 }
 
-const handleClickLocation = (event, assets) => {
+const handleClickLocationAsset = (event, assets) => {
   const {
     target: { id },
   } = event;
   const arrow = document.getElementById(id);
+  const contentContainer = arrow.nextElementSibling
   if (arrow.classList.contains("open")) {
     arrow.classList.remove("open");
     arrow.classList.add("closed");
@@ -272,12 +292,15 @@ const renderButtonsByType = (assets, parentId) => {
   withTypeHints.forEach((asset) => {
     const container = document.createElement("div");
     container.classList.add("company-data-container");
+
     const contentContainer = document.createElement("div");
     contentContainer.classList.add("company-data-content");
+
     const button = document.createElement("button");
     button.classList.add("company-data");
     button.classList.add("closed");
     button.id = asset.id;
+
     if(asset.type === "component"){
         renderComponent(asset, parentContentContainer, assets);
         return;
@@ -290,7 +313,7 @@ const renderButtonsByType = (assets, parentId) => {
     textSpan.innerText = asset.name;
 
     button.addEventListener("click", (event) =>
-      handleClickLocation(event, assets)
+      handleClickLocationAsset(event, assets)
     );
 
     button.appendChild(arrow);
@@ -309,6 +332,7 @@ const renderButtonsByType = (assets, parentId) => {
 };
 
 const renderComponent = (asset, parent, assets) => {
+    console.log({asset})
     const container = document.createElement("div");
     container.classList.add("company-data-container");
 
@@ -332,6 +356,26 @@ const renderComponent = (asset, parent, assets) => {
     button.appendChild(img);
     button.appendChild(textSpan);
 
+    const isCritical = asset.status === "alert"
+    const isEnergy = asset.sensorType === "energy";
+
+    if(isEnergy){
+        button.appendChild(createElementFromHTML(boltSVG))
+    }
+
+    const statusDisplay = document.createElement("span");
+    statusDisplay.classList.add("status-display");
+
+
+
+    if(isCritical){
+        statusDisplay.classList.add("critical")
+    }else{
+        statusDisplay.classList.add("operating")
+    }
+
+    button.appendChild(statusDisplay);
+
     container.appendChild(button);
 
     parent.appendChild(container);
@@ -340,7 +384,6 @@ const renderComponent = (asset, parent, assets) => {
 const handleClickComponent = (event, assets) => {
     const { target: { id }} = event;
     const selectedComponent = assets.find(el => el.id === id)
-    console.log({selectedComponent})
     const title = document.getElementById("asset-title")
     const responsible = document.getElementById("asset-responsible")
     const responsibleAvatar = document.getElementById("asset-responsible-avatar")

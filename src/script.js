@@ -114,9 +114,12 @@ function debounce(func, delay) {
 }
 
 function handleSearch(event) {
-  console.log(event);
-  console.log(event.target.value);
+  companyData.filterByText(event.target.value);
+  renderFilteredLocations()
+  console.log(companyData.filteredLocations);
+  console.log(companyData.assets);
 }
+
 
 let startInteractionPosition;
 const handleTouchStart = (event) => {
@@ -220,9 +223,10 @@ function renderUnlinkedComponents(components, parent, assets) {
 
 function addArrowIfHasChildren(assets, parent, currentAsset) {
   const groupedByLocationAndParent = groupAssets(assets);
-
+  console.log({currentAsset})
   const hasChildren = groupedByLocationAndParent[currentAsset.id];
-  if (hasChildren) {
+  console.log('condition ', !(currentAsset.type === "component"))
+  if (hasChildren || !(currentAsset.type === "component")) {
     const arrow = document.createElement("span");
     arrow.classList.add("company-data-arrow");
     arrow.appendChild(createElementFromHTML(arrowSVG));

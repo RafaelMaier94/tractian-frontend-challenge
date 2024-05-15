@@ -1,4 +1,5 @@
 import { getCompanies, getCompanyAssets, getCompanyLocations } from "./api.js";
+import CompanyData from "./companyData.js";
 import { addTypesToAssets, dataTypeSVGMapper } from "./dataTypeMapper.js";
 import {
   arrowSVG,
@@ -79,25 +80,27 @@ function addListeners() {
   searchField.addEventListener("input", debounce(handleSearch, 500));
 }
 
-const handleClickFilter = async (event, assetsAndLocations) => {
-  //   const companyLocations = await getCompanyLocations(companyId);
-  //   const subLocations = companyLocations.map((el) =>
-  //     el.parentId ? { ...el, isLocation: true } : null
-  //   );
-  //   const assets = [
-  //     ...(await getCompanyAssets(companyId)),
-  //     ...subLocations.filter((el) => el),
-  //   ];
-  //   const assetsAndLocations = [...assets, ...companyLocations];
+const handleClickFilter = async (event, companyData) => {
+
   const button = document.getElementById(event.target.id);
   if (button.classList.contains("active")) {
     button.classList.remove("active");
     button.classList.add("inactive");
+    companyData.activeFilters[event.target.id] = false;
   } else {
-    filterAssets(event, assetsAndLocations);
+    // filterAssets(event, assetsAndLocations);
     button.classList.remove("inactive");
     button.classList.add("active");
+    companyData.activeFilters[event.target.id] = true;
   }
+  console.log(companyData.noFiltersActive)
+  if(companyData.noFiltersActive){
+    console.log('in no fitlers acitve')
+    renderLocations(companyData)
+    return;
+  }
+  companyData.filterBySensorOrCritical();
+  renderFilteredLocations(companyData);
 };
 
 function debounce(func, delay) {
@@ -191,19 +194,18 @@ async function handleClickUnitButton(event) {
     ...(await getCompanyAssets(id)),
     ...subLocations.filter((el) => el),
   ];
-  const assetsAndLocations = [...assets, ...companyLocations];
-
+  const companyData = new CompanyData(companyLocations, assets);
   const energySensorButton = document.getElementById("energy-sensor-filter");
   energySensorButton.classList.remove("active");
   energySensorButton.onclick = (event) =>
-    handleClickFilter(event, assetsAndLocations);
+    handleClickFilter(event, companyData);
 
   const criticalButton = document.getElementById("critical-filter");
   criticalButton.classList.remove("active");
   criticalButton.onclick = (event) =>
-    handleClickFilter(event, assetsAndLocations);
+    handleClickFilter(event, companyData);
 
-  renderLocations(companyLocations, assets);
+  renderLocations(companyData);
 }
 
 function renderUnlinkedComponents(components, parent, assets) {
@@ -228,36 +230,38 @@ function addArrowIfHasChildren(assets, parent, currentAsset) {
   }
 }
 
-function getFilteredAssets(event, assetsAndLocations) {
-  if (event.target.id.includes("energy"))
-    return assetsAndLocations.filter((el) => el.sensorType === "energy");
-  return assetsAndLocations.filter((el) => el.status === "alert");
-}
+// function getFilteredAssets(event, assetsAndLocations) {
+//   if (event.target.id.includes("energy"))
+//     return assetsAndLocations.filter((el) => el.sensorType === "energy");
+//   return assetsAndLocations.filter((el) => el.status === "alert");
+// }
 
-function filterAssets(event, assetsAndLocations) {
-  const filteredComponents = getFilteredAssets(event, assetsAndLocations);
-  const filteredAssets = new Map();
-  const filteredRootLocations = new Map();
-  filteredComponents.forEach((component) =>
-    filteredAssets.set(component.id, component)
-  );
-  const asMap = new Map();
-  assetsAndLocations.forEach((asset) => asMap.set(asset.id, asset));
-  const addParents = (asset) => {
-    if (!asset) return;
-    if (!asset.parentId && !asset.locationId) {
-      filteredRootLocations.set(asset.id, asset);
-      return;
-    }
-    const parent = asMap.get(asset.parentId) ?? asMap.get(asset.locationId);
-    filteredAssets.set(parent.id, parent);
-    addParents(parent);
-  };
-  filteredComponents.forEach(addParents);
-  renderFilteredLocations(filteredRootLocations, filteredAssets);
-}
+// function filterAssets(event, assetsAndLocations) {
+//   const filteredComponents = getFilteredAssets(event, assetsAndLocations);
+//   const filteredAssets = new Map();
+//   const filteredRootLocations = new Map();
+//   filteredComponents.forEach((component) =>
+//     filteredAssets.set(component.id, component)
+//   );
+//   const asMap = new Map();
+//   assetsAndLocations.forEach((asset) => asMap.set(asset.id, asset));
+//   const addParents = (asset) => {
+//     if (!asset) return;
+//     if (!asset.parentId && !asset.locationId) {
+//       filteredRootLocations.set(asset.id, asset);
+//       return;
+//     }
+//     const parent = asMap.get(asset.parentId) ?? asMap.get(asset.locationId);
+//     filteredAssets.set(parent.id, parent);
+//     addParents(parent);
+//   };
+//   filteredComponents.forEach(addParents);
+//   renderFilteredLocations(filteredRootLocations, filteredAssets);
+// }
 
-function renderFilteredLocations(locations, assets) {
+function renderFilteredLocations(companyData) {
+  const locations = companyData.filteredLocations
+  const assets = companyData.filteredAssets
   const parent = document.getElementsByClassName("assets-container")[0];
   parent.replaceChildren();
   locations.values().forEach((location) => {
@@ -300,8 +304,11 @@ function renderFilteredLocations(locations, assets) {
   renderUnlinkedComponents(unlinkedComponents, parent, [...assets.values()]);
 }
 
-function renderLocations(locations, assets) {
+function renderLocations(companyData) {
+  const locations = companyData.locations;
+  const assets = companyData.assets
   const parent = document.getElementsByClassName("assets-container")[0];
+  parent.replaceChildren()
   locations.forEach((location) => {
     if (location.parentId) return;
     const button = document.createElement("button");

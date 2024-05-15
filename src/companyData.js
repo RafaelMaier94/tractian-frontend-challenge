@@ -8,9 +8,7 @@ class CompanyData {
     "critical-filter": false,
     textSearch: false,
   };
-  constructor(locations, assets) {
-    this.locations = locations;
-    this.assets = assets;
+  constructor() {
   }
   filterBySensorOrCritical() {
     if (!this.assets || !this.locations) return;
@@ -65,5 +63,5 @@ class CompanyData {
     );
   }
 }
-
-export default CompanyData;
+const companyData = new CompanyData();
+export default companyData;

@@ -1,5 +1,5 @@
 import { getCompanies, getCompanyAssets, getCompanyLocations } from "./api.js";
-import CompanyData from "./companyData.js";
+import companyData from "./companyData.js";
 import { addTypesToAssets, dataTypeSVGMapper } from "./dataTypeMapper.js";
 import {
   arrowSVG,
@@ -80,7 +80,7 @@ function addListeners() {
   searchField.addEventListener("input", debounce(handleSearch, 500));
 }
 
-const handleClickFilter = async (event, companyData) => {
+const handleClickFilter = async (event) => {
 
   const button = document.getElementById(event.target.id);
   if (button.classList.contains("active")) {
@@ -194,18 +194,20 @@ async function handleClickUnitButton(event) {
     ...(await getCompanyAssets(id)),
     ...subLocations.filter((el) => el),
   ];
-  const companyData = new CompanyData(companyLocations, assets);
+  const rootLocations = companyLocations.filter(el => !el.parentId)
+  companyData.locations = rootLocations
+  companyData.assets = assets
   const energySensorButton = document.getElementById("energy-sensor-filter");
   energySensorButton.classList.remove("active");
   energySensorButton.onclick = (event) =>
-    handleClickFilter(event, companyData);
+    handleClickFilter(event);
 
   const criticalButton = document.getElementById("critical-filter");
   criticalButton.classList.remove("active");
   criticalButton.onclick = (event) =>
-    handleClickFilter(event, companyData);
+    handleClickFilter(event);
 
-  renderLocations(companyData);
+  renderLocations();
 }
 
 function renderUnlinkedComponents(components, parent, assets) {
@@ -259,7 +261,7 @@ function addArrowIfHasChildren(assets, parent, currentAsset) {
 //   renderFilteredLocations(filteredRootLocations, filteredAssets);
 // }
 
-function renderFilteredLocations(companyData) {
+function renderFilteredLocations() {
   const locations = companyData.filteredLocations
   const assets = companyData.filteredAssets
   const parent = document.getElementsByClassName("assets-container")[0];
@@ -304,7 +306,7 @@ function renderFilteredLocations(companyData) {
   renderUnlinkedComponents(unlinkedComponents, parent, [...assets.values()]);
 }
 
-function renderLocations(companyData) {
+function renderLocations() {
   const locations = companyData.locations;
   const assets = companyData.assets
   const parent = document.getElementsByClassName("assets-container")[0];

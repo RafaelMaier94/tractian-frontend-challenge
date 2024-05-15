@@ -12,7 +12,6 @@ class CompanyData {
   }
   filterBySensorOrCritical() {
     if (!this.assets || !this.locations) return;
-    console.log(this.activeFilters);
     const assetsAndLocations = [...this.assets, ...this.locations];
 
     const getFilteredAssets = () => {
@@ -24,7 +23,6 @@ class CompanyData {
           (el) => el.sensorType === "energy" && el.status === "alert"
         );
       if (this.activeFilters["energy-sensor-filter"]) {
-        console.log("In energy");
         return assetsAndLocations.filter((el) => el.sensorType === "energy");
       }
       return assetsAndLocations.filter((el) => el.status === "alert");
@@ -69,7 +67,6 @@ class CompanyData {
       };
       
       if (!this.assets || !this.locations) return;
-      console.log(this.activeFilters);
       const assetsAndLocations = [...this.assets, ...this.locations];
       const { locations, assets} = getTargets()
     //   const filteredComponents = getFilteredAssets();
@@ -95,8 +92,6 @@ class CompanyData {
         addParents(parent);
       };
       filteredAssets.forEach(addParents);
-      console.log({filteredLocations})
-      console.log({filteredAssets})
       this.filteredLocations = filteredLocations;
       this.filteredAssets = filteredAssets;
       return { filteredLocations, filteredAssets };

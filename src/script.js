@@ -55,7 +55,6 @@ loadLocations();
 
 async function loadLocations() {
   const locations = await getCompanyLocations("662fd0ee639069143a8fc387");
-  console.log(locations);
 }
 function addListeners() {
   const innerWidth = window.innerWidth;
@@ -93,9 +92,7 @@ const handleClickFilter = async (event) => {
     button.classList.add("active");
     companyData.activeFilters[event.target.id] = true;
   }
-  console.log(companyData.noFiltersActive)
   if(companyData.noFiltersActive){
-    console.log('in no fitlers acitve')
     renderLocations(companyData)
     return;
   }
@@ -114,10 +111,12 @@ function debounce(func, delay) {
 }
 
 function handleSearch(event) {
+  if(!event.target.value) {
+    renderLocations();
+    return;
+  }
   companyData.filterByText(event.target.value);
   renderFilteredLocations()
-  console.log(companyData.filteredLocations);
-  console.log(companyData.assets);
 }
 
 
@@ -223,9 +222,7 @@ function renderUnlinkedComponents(components, parent, assets) {
 
 function addArrowIfHasChildren(assets, parent, currentAsset) {
   const groupedByLocationAndParent = groupAssets(assets);
-  console.log({currentAsset})
   const hasChildren = groupedByLocationAndParent[currentAsset.id];
-  console.log('condition ', !(currentAsset.type === "component"))
   if (hasChildren || !(currentAsset.type === "component")) {
     const arrow = document.createElement("span");
     arrow.classList.add("company-data-arrow");
@@ -302,7 +299,7 @@ function renderFilteredLocations() {
     container.appendChild(button);
     container.appendChild(contentContainer);
     parent.appendChild(container);
-    renderFilteredButtonsByType([...assets.values()], location.id);
+    renderFilteredButtonsByType([...assets.values()], location.id, companyData.assets);
   });
   const unlinkedComponents = [...assets.values()].filter(
     (asset) => asset.sensorType && !asset.locationId && !asset.parentId
@@ -379,11 +376,10 @@ const groupAssets = (assets) => {
   return groupedByLocationAndParent;
 };
 
-const renderFilteredButtonsByType = (assets, parentId) => {
+const renderFilteredButtonsByType = (filteredAssets, parentId, allAssets) => {
   const parent = document.getElementById(parentId).parentElement;
   const parentContentContainer = parent.lastChild;
-
-  const groupedByLocationAndParent = groupAssets(assets);
+  const groupedByLocationAndParent = groupAssets(filteredAssets);
   const assetsOnParentId = groupedByLocationAndParent[parentId];
   const withTypeHints = addTypesToAssets(assetsOnParentId);
 
@@ -396,21 +392,45 @@ const renderFilteredButtonsByType = (assets, parentId) => {
 
     const button = document.createElement("button");
     button.classList.add("company-data");
-    button.classList.add("open");
     button.id = asset.id;
 
-    addArrowIfHasChildren(assets, button, asset);
+    addArrowIfHasChildren(filteredAssets, button, asset);
 
     if (asset.type === "component") {
-      renderComponent(asset, parentContentContainer, assets);
+      renderComponent(asset, parentContentContainer, filteredAssets);
       return;
     }
+
+    if(!groupedByLocationAndParent[asset.id]){
+      const textSpan = document.createElement("span");
+      textSpan.innerText = asset.name;
+
+      button.classList.add("closed");
+
+  
+      button.addEventListener("click", (event) =>
+        handleClickLocationAsset(event, allAssets)
+      );
+  
+      const svg = dataTypeSVGMapper[asset.type];
+  
+      button.appendChild(createElementFromHTML(svg));
+      button.appendChild(textSpan);
+  
+      container.appendChild(button);
+      container.appendChild(contentContainer);
+  
+      parentContentContainer.appendChild(container);
+      renderFilteredButtonsByType(filteredAssets, asset.id, allAssets);
+      return
+    }
+    button.classList.add("open");
 
     const textSpan = document.createElement("span");
     textSpan.innerText = asset.name;
 
     button.addEventListener("click", (event) =>
-      handleClickLocationAsset(event, assets)
+      handleClickLocationAsset(event, filteredAssets)
     );
 
     const svg = dataTypeSVGMapper[asset.type];
@@ -422,14 +442,13 @@ const renderFilteredButtonsByType = (assets, parentId) => {
     container.appendChild(contentContainer);
 
     parentContentContainer.appendChild(container);
-    renderFilteredButtonsByType(assets, asset.id);
+    renderFilteredButtonsByType(filteredAssets, asset.id);
   });
 };
 
 const renderButtonsByType = (assets, parentId) => {
   const parent = document.getElementById(parentId).parentElement;
   const parentContentContainer = parent.lastChild;
-
   const groupedByLocationAndParent = groupAssets(assets);
   const assetsOnParentId = groupedByLocationAndParent[parentId];
   const withTypeHints = addTypesToAssets(assetsOnParentId);

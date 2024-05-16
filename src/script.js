@@ -5,9 +5,12 @@ import {
   arrowSVG,
   boltSVG,
   companiesSVG,
-  componentSVG,
   locationsSVG,
 } from "./svgMappers.js";
+
+// OBS: ASSET 44, ID "6a99001c2615e600676e0d6b"
+// HAS STATUS = "ALERT"
+// EVEN THOUGH IT IS NOT A COMPONENT
 
 document.addEventListener("DOMContentLoaded", function () {
   addListeners();
@@ -50,12 +53,6 @@ async function loadCompanies() {
     button.addEventListener("click", handleClickUnitButton);
   });
 }
-
-loadLocations();
-
-async function loadLocations() {
-  const locations = await getCompanyLocations("662fd0ee639069143a8fc387");
-}
 function addListeners() {
   const innerWidth = window.innerWidth;
   if (innerWidth <= 768) {
@@ -81,32 +78,18 @@ function addListeners() {
 
 const handleClickFilter = async (event) => {
   const button = document.getElementById(event.target.id);
-  if (button.classList.contains("active")) {
+  const isActive = button.classList.contains("active")
+  companyData.activeFilters[event.target.id] = !isActive
+  if(isActive){
     button.classList.remove("active");
     button.classList.add("inactive");
-    companyData.activeFilters[event.target.id] = false;
-  } else {
-    // filterAssets(event, assetsAndLocations);
+  }else{
     button.classList.remove("inactive");
     button.classList.add("active");
-    companyData.activeFilters[event.target.id] = true;
   }
-  if (companyData.noFiltersActive) {
-    renderLocations(companyData);
-    return;
-  }
-  if (
-    companyData.activeFilters.textSearch &&
-    !companyData.activeFilters["energy-sensor-filter"] &&
-    !companyData.activeFilters["critical-filter"]
-  ) {
-    const value = document.getElementById("search-text").value;
-    companyData.filterByText(value);
-    renderFilteredLocations(companyData);
-    return;
-  }
-  companyData.filterBySensorOrCritical();
-  renderFilteredLocations(companyData);
+  if(companyData.noFiltersActive) return renderLocations();
+  companyData.selectFilterStrategy();
+  selectRenderStrategy()();
 };
 
 function debounce(func, delay) {
@@ -119,22 +102,17 @@ function debounce(func, delay) {
   };
 }
 
-function handleSearch(event) {
-  if (!event.target.value && companyData.noFiltersActive) {
-    companyData.activeFilters.textSearch = false;
-    renderLocations();
-    return;
+function selectRenderStrategy(){
+  if(companyData.noFiltersActive){
+    return renderLocations;
   }
-  if(!event.target.value && !companyData.noFiltersActive){
-    companyData.activeFilters.textSearch = false;
-    companyData.filterBySensorOrCritical();
-    renderFilteredLocations();
-    return;
+  return renderFilteredLocations;
+}
 
-  }
-  companyData.filterByText(event.target.value);
-  companyData.activeFilters.textSearch = true;
-  renderFilteredLocations();
+function handleSearch(event) {
+  companyData.activeFilters.textSearch = event.target.value;
+  companyData.selectFilterStrategy();
+  selectRenderStrategy()();
 }
 
 let startInteractionPosition;
@@ -216,8 +194,8 @@ async function handleClickUnitButton(event) {
     ...subLocations.filter((el) => el),
   ];
   const rootLocations = companyLocations.filter((el) => !el.parentId);
-  companyData.locations = rootLocations;
-  companyData.assets = assets;
+  companyData.locations = addTypesToAssets(rootLocations);
+  companyData.assets = addTypesToAssets(assets);
   const energySensorButton = document.getElementById("energy-sensor-filter");
   energySensorButton.classList.remove("active");
   energySensorButton.onclick = (event) => handleClickFilter(event);
@@ -253,34 +231,6 @@ function addArrowIfHasChildren(assets, parent, currentAsset) {
   }
 }
 
-// function getFilteredAssets(event, assetsAndLocations) {
-//   if (event.target.id.includes("energy"))
-//     return assetsAndLocations.filter((el) => el.sensorType === "energy");
-//   return assetsAndLocations.filter((el) => el.status === "alert");
-// }
-
-// function filterAssets(event, assetsAndLocations) {
-//   const filteredComponents = getFilteredAssets(event, assetsAndLocations);
-//   const filteredAssets = new Map();
-//   const filteredRootLocations = new Map();
-//   filteredComponents.forEach((component) =>
-//     filteredAssets.set(component.id, component)
-//   );
-//   const asMap = new Map();
-//   assetsAndLocations.forEach((asset) => asMap.set(asset.id, asset));
-//   const addParents = (asset) => {
-//     if (!asset) return;
-//     if (!asset.parentId && !asset.locationId) {
-//       filteredRootLocations.set(asset.id, asset);
-//       return;
-//     }
-//     const parent = asMap.get(asset.parentId) ?? asMap.get(asset.locationId);
-//     filteredAssets.set(parent.id, parent);
-//     addParents(parent);
-//   };
-//   filteredComponents.forEach(addParents);
-//   renderFilteredLocations(filteredRootLocations, filteredAssets);
-// }
 
 function renderFilteredLocations() {
   const locations = companyData.filteredLocations;
@@ -405,7 +355,6 @@ const renderFilteredButtonsByType = (filteredAssets, parentId, allAssets = null)
   const groupedByLocationAndParent = groupAssets(filteredAssets);
   const assetsOnParentId = groupedByLocationAndParent[parentId];
   const withTypeHints = addTypesToAssets(assetsOnParentId);
-
   withTypeHints.forEach((asset) => {
     const container = document.createElement("div");
     container.classList.add("company-data-container");
@@ -424,7 +373,7 @@ const renderFilteredButtonsByType = (filteredAssets, parentId, allAssets = null)
     }
 
     if (!groupedByLocationAndParent[asset.id]) {
-    addArrowIfHasChildren(allAssets, button, asset);
+      addArrowIfHasChildren(allAssets, button, asset);
 
       const textSpan = document.createElement("span");
       textSpan.innerText = asset.name;
@@ -595,7 +544,6 @@ const handleSidebarOpen = (event) => {
   Array.from(buttons).forEach((button) => {
     button.classList.add("scaleOutButtons");
   });
-  // buttonsContainer[0].classList.add('scaleOutY')
   header[0].classList.add("scaleOutY");
   sidebarOpen.classList.add("scaleInX");
   sidebarOpen.style.display = "block";

@@ -34,38 +34,28 @@ class CompanyData {
       return this.filterByText();
     }
   }
-  noFilters() {}
   filterByTextAndComponent() {
-    const getTargets = () => {
-      if (
-        this.activeFilters["energy-sensor-filter"] ||
-        this.activeFilters["critical-filter"]
-      )
-        return {
-          locations: this.filteredLocations,
-          assets: this.filteredAssets,
-        };
-      return { locations: this.locations, assets: this.assets };
-    };
     const filteredComponents = this.getFilteredAssets();
     if (!this.assets || !this.locations) return;
     const assetsAndLocations = [...this.assets, ...this.locations];
-    const { locations, assets } = getTargets();
     const asMap = new Map();
 
     assetsAndLocations.forEach((asset) => asMap.set(asset.id, asset));
     const text = this.activeFilters["textSearch"];
     const filteredLocationsByText = new Map()
     const filteredLocationsByTextAndComponent = new Map()
-    locations.forEach(el => {
-      if(el.name.toLowerCase().includes(text.toLowerCase())) filteredLocationsByText.set(el.id, el)
+    this.locations.forEach(el => {
+      filteredLocationsByText.set(el.id, el)
     })
     const filteredAssets = new Map()
+    const assetsFilteredByText = new Map()
     filteredComponents.forEach(el => {
       filteredAssets.set(el.id, el)
     })
-    assets.forEach(el => {
-      if(el.name.toLowerCase().includes(text.toLowerCase())) filteredAssets.set(el.id, el)
+    this.assets.forEach(el => {
+      if(el.name.toLowerCase().includes(text.toLowerCase())) {
+        assetsFilteredByText.set(el.id, el)
+      }
     })
 
     const addParents = (asset) => {
@@ -73,7 +63,11 @@ class CompanyData {
       if (!asset.parentId && !asset.locationId && !filteredLocationsByTextAndComponent.has(asset.id)) {
         filteredLocationsByTextAndComponent.set(asset.id, asset)
       }
-      const parent = asMap.get(asset.parentId) ?? filteredLocationsByText.get(asset.locationId)
+      const parent = 
+      assetsFilteredByText.get(asset.parentId) ?? 
+      assetsFilteredByText.get(asset.locationId) ??
+      filteredLocationsByText.get(asset.parentId) ??
+      filteredLocationsByText.get(asset.locationId)
       if(!parent ) return
       if(filteredAssets.has(parent.id)) return;
       filteredAssets.set(parent.id, parent)

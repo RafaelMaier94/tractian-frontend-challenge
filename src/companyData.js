@@ -13,6 +13,10 @@ class CompanyData {
   filterBySensorOrCritical() {
     if (!this.assets || !this.locations) return;
     const assetsAndLocations = [...this.assets, ...this.locations];
+    // const getTargets = () => {
+    //   if (this.activeFilters.textSearch) return [...this.filteredLocations, ...this.filteredAssets];
+    //   return [...this.locations, ...this.assets];
+    // }
 
     const getFilteredAssets = () => {
       if (
@@ -28,6 +32,7 @@ class CompanyData {
       return assetsAndLocations.filter((el) => el.status === "alert");
     };
 
+    // const filteredComponents = getFilteredAssets(getTargets());
     const filteredComponents = getFilteredAssets();
     const filteredAssets = new Map();
     const filteredLocations = new Map();
@@ -69,31 +74,33 @@ class CompanyData {
       if (!this.assets || !this.locations) return;
       const assetsAndLocations = [...this.assets, ...this.locations];
       const { locations, assets} = getTargets()
-    //   const filteredComponents = getFilteredAssets();
-    //   const filteredAssets = new Map();
-    //   const filteredLocations = new Map();
       const asMap = new Map();
   
-    //   filteredComponents.forEach((component) =>
-    //     filteredAssets.set(component.id, component)
-    //   );
       assetsAndLocations.forEach((asset) => asMap.set(asset.id, asset));
-      const filteredLocations = locations.filter(el => el.name.toLowerCase().includes(text.toLowerCase()))
-      const filteredAssets = assets.filter(el => el.name.toLowerCase().includes(text.toLowerCase()))
-
+      const filteredLocations = new Map()
+      locations.forEach(el => {
+        if(el.name.toLowerCase().includes(text.toLowerCase())) filteredLocations.set(el.id, el)
+      })
+      const filteredAssets = new Map()
+      assets.forEach(el => {
+        if(el.name.toLowerCase().includes(text.toLowerCase())) filteredAssets.set(el.id, el)
+      })
       const addParents = (asset) => {
         if (!asset) return;
-        if (!asset.parentId && !asset.locationId) {
-          filteredLocations.push(asset)
+        if (!asset.parentId && !asset.locationId && !filteredLocations.has(asset.id)) {
+          filteredLocations.set(asset.id, asset)
           return;
         }
-        const parent = asMap.get(asset.parentId) ?? asMap.get(asset.locationId);
-        filteredAssets.push(parent)
+        const parent = asMap.get(asset.parentId) ?? asMap.get(asset.locationId)
+        if(!parent ) return
+        if(filteredAssets.has(parent.id)) return;
+        filteredAssets.set(parent.id, parent)
         addParents(parent);
       };
       filteredAssets.forEach(addParents);
       this.filteredLocations = filteredLocations;
       this.filteredAssets = filteredAssets;
+
       return { filteredLocations, filteredAssets };
   }
   get noFiltersActive() {

@@ -112,10 +112,12 @@ function debounce(func, delay) {
 
 function handleSearch(event) {
   if(!event.target.value) {
+    companyData.activeFilters.textSearch = false;
     renderLocations();
     return;
   }
   companyData.filterByText(event.target.value);
+  companyData.activeFilters.textSearch = true;
   renderFilteredLocations()
 }
 

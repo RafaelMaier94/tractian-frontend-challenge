@@ -80,7 +80,6 @@ function addListeners() {
 }
 
 const handleClickFilter = async (event) => {
-
   const button = document.getElementById(event.target.id);
   if (button.classList.contains("active")) {
     button.classList.remove("active");
@@ -92,8 +91,18 @@ const handleClickFilter = async (event) => {
     button.classList.add("active");
     companyData.activeFilters[event.target.id] = true;
   }
-  if(companyData.noFiltersActive){
-    renderLocations(companyData)
+  if (companyData.noFiltersActive) {
+    renderLocations(companyData);
+    return;
+  }
+  if (
+    companyData.activeFilters.textSearch &&
+    !companyData.activeFilters["energy-sensor-filter"] &&
+    !companyData.activeFilters["critical-filter"]
+  ) {
+    const value = document.getElementById("search-text").value;
+    companyData.filterByText(value);
+    renderFilteredLocations(companyData);
     return;
   }
   companyData.filterBySensorOrCritical();
@@ -111,16 +120,22 @@ function debounce(func, delay) {
 }
 
 function handleSearch(event) {
-  if(!event.target.value) {
+  if (!event.target.value && companyData.noFiltersActive) {
     companyData.activeFilters.textSearch = false;
     renderLocations();
     return;
   }
+  if(!event.target.value && !companyData.noFiltersActive){
+    companyData.activeFilters.textSearch = false;
+    companyData.filterBySensorOrCritical();
+    renderFilteredLocations();
+    return;
+
+  }
   companyData.filterByText(event.target.value);
   companyData.activeFilters.textSearch = true;
-  renderFilteredLocations()
+  renderFilteredLocations();
 }
-
 
 let startInteractionPosition;
 const handleTouchStart = (event) => {
@@ -166,6 +181,8 @@ async function handleClickUnitButton(event) {
     currentTarget: { id },
   } = event;
   const button = document.getElementById(event.currentTarget?.id);
+  const input = document.getElementById("search-text")
+  input.value = ""
   const isActive = (button) => button.classList.contains("active");
 
   const unitButtons = document.getElementsByClassName("unit");
@@ -198,18 +215,16 @@ async function handleClickUnitButton(event) {
     ...(await getCompanyAssets(id)),
     ...subLocations.filter((el) => el),
   ];
-  const rootLocations = companyLocations.filter(el => !el.parentId)
-  companyData.locations = rootLocations
-  companyData.assets = assets
+  const rootLocations = companyLocations.filter((el) => !el.parentId);
+  companyData.locations = rootLocations;
+  companyData.assets = assets;
   const energySensorButton = document.getElementById("energy-sensor-filter");
   energySensorButton.classList.remove("active");
-  energySensorButton.onclick = (event) =>
-    handleClickFilter(event);
+  energySensorButton.onclick = (event) => handleClickFilter(event);
 
   const criticalButton = document.getElementById("critical-filter");
   criticalButton.classList.remove("active");
-  criticalButton.onclick = (event) =>
-    handleClickFilter(event);
+  criticalButton.onclick = (event) => handleClickFilter(event);
 
   renderLocations();
 }
@@ -225,7 +240,10 @@ function renderUnlinkedComponents(components, parent, assets) {
 function addArrowIfHasChildren(assets, parent, currentAsset) {
   const groupedByLocationAndParent = groupAssets(assets);
   const hasChildren = groupedByLocationAndParent[currentAsset.id];
-  if (hasChildren || !(currentAsset.type === "component")) {
+  if(currentAsset.type === "component"){
+    return;
+  }
+  if (hasChildren) {
     const arrow = document.createElement("span");
     arrow.classList.add("company-data-arrow");
     arrow.appendChild(createElementFromHTML(arrowSVG));
@@ -265,11 +283,11 @@ function addArrowIfHasChildren(assets, parent, currentAsset) {
 // }
 
 function renderFilteredLocations() {
-  const locations = companyData.filteredLocations
-  const assets = companyData.filteredAssets
+  const locations = companyData.filteredLocations;
+  const assets = companyData.filteredAssets;
   const parent = document.getElementsByClassName("assets-container")[0];
   parent.replaceChildren();
-  locations.forEach((location) => {
+  locations.values().forEach((location) => {
     if (location.parentId) return;
 
     const button = document.createElement("button");
@@ -291,9 +309,8 @@ function renderFilteredLocations() {
 
     const textSpan = document.createElement("span");
     textSpan.innerText = location.name;
-
     button.addEventListener("click", (event) =>
-      handleClickLocationAsset(event, assets)
+      handleClickLocationAsset(event, assets.values())
     );
 
     button.appendChild(createElementFromHTML(locationsSVG));
@@ -301,7 +318,11 @@ function renderFilteredLocations() {
     container.appendChild(button);
     container.appendChild(contentContainer);
     parent.appendChild(container);
-    renderFilteredButtonsByType([...assets.values()], location.id, companyData.assets);
+    renderFilteredButtonsByType(
+      [...assets.values()],
+      location.id,
+      companyData.assets
+    );
   });
   const unlinkedComponents = [...assets.values()].filter(
     (asset) => asset.sensorType && !asset.locationId && !asset.parentId
@@ -311,9 +332,9 @@ function renderFilteredLocations() {
 
 function renderLocations() {
   const locations = companyData.locations;
-  const assets = companyData.assets
+  const assets = companyData.assets;
   const parent = document.getElementsByClassName("assets-container")[0];
-  parent.replaceChildren()
+  parent.replaceChildren();
   locations.forEach((location) => {
     if (location.parentId) return;
     const button = document.createElement("button");
@@ -378,7 +399,7 @@ const groupAssets = (assets) => {
   return groupedByLocationAndParent;
 };
 
-const renderFilteredButtonsByType = (filteredAssets, parentId, allAssets) => {
+const renderFilteredButtonsByType = (filteredAssets, parentId, allAssets = null) => {
   const parent = document.getElementById(parentId).parentElement;
   const parentContentContainer = parent.lastChild;
   const groupedByLocationAndParent = groupAssets(filteredAssets);
@@ -396,36 +417,38 @@ const renderFilteredButtonsByType = (filteredAssets, parentId, allAssets) => {
     button.classList.add("company-data");
     button.id = asset.id;
 
-    addArrowIfHasChildren(filteredAssets, button, asset);
 
     if (asset.type === "component") {
       renderComponent(asset, parentContentContainer, filteredAssets);
       return;
     }
 
-    if(!groupedByLocationAndParent[asset.id]){
+    if (!groupedByLocationAndParent[asset.id]) {
+    addArrowIfHasChildren(allAssets, button, asset);
+
       const textSpan = document.createElement("span");
       textSpan.innerText = asset.name;
 
       button.classList.add("closed");
 
-  
       button.addEventListener("click", (event) =>
         handleClickLocationAsset(event, allAssets)
       );
-  
+
       const svg = dataTypeSVGMapper[asset.type];
-  
+
       button.appendChild(createElementFromHTML(svg));
       button.appendChild(textSpan);
-  
+
       container.appendChild(button);
       container.appendChild(contentContainer);
-  
+
       parentContentContainer.appendChild(container);
       renderFilteredButtonsByType(filteredAssets, asset.id, allAssets);
-      return
+      return;
     }
+    addArrowIfHasChildren(filteredAssets, button, asset);
+
     button.classList.add("open");
 
     const textSpan = document.createElement("span");

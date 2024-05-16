@@ -30,6 +30,7 @@ class CompanyData {
       }
       return this.assets.filter((el) => el.status === "alert");
     };
+    console.log(getFilteredAssets())
 
     const filteredComponents = getFilteredAssets();
     const filteredAssets = new Map();
@@ -61,7 +62,8 @@ class CompanyData {
       addParents(parent);
     };
     filteredComponents.forEach(addParents);
-
+    console.log({filteredLocations})
+    console.log({filteredAssets})
     this.filteredLocations = filteredLocations;
     this.filteredAssets = filteredAssets;
     return { filteredLocations, filteredAssets };

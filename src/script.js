@@ -269,7 +269,7 @@ function renderFilteredLocations() {
   const assets = companyData.filteredAssets
   const parent = document.getElementsByClassName("assets-container")[0];
   parent.replaceChildren();
-  locations.values().forEach((location) => {
+  locations.forEach((location) => {
     if (location.parentId) return;
 
     const button = document.createElement("button");

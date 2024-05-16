@@ -12,27 +12,25 @@ class CompanyData {
   }
   filterBySensorOrCritical() {
     if (!this.assets || !this.locations) return;
-    const assetsAndLocations = [...this.assets, ...this.locations];
-    // const getTargets = () => {
-    //   if (this.activeFilters.textSearch) return [...this.filteredLocations, ...this.filteredAssets];
-    //   return [...this.locations, ...this.assets];
-    // }
+    const getEligibleParents = () => {
+      if (this.activeFilters.textSearch) return [...this.filteredLocations, ...this.filteredAssets];
+      return [...this.locations, ...this.assets];
+    }
 
     const getFilteredAssets = () => {
       if (
         this.activeFilters["energy-sensor-filter"] &&
         this.activeFilters["critical-filter"]
       )
-        return assetsAndLocations.filter(
+        return this.assets.filter(
           (el) => el.sensorType === "energy" && el.status === "alert"
         );
       if (this.activeFilters["energy-sensor-filter"]) {
-        return assetsAndLocations.filter((el) => el.sensorType === "energy");
+        return this.assets.filter((el) => el.sensorType === "energy");
       }
-      return assetsAndLocations.filter((el) => el.status === "alert");
+      return this.assets.filter((el) => el.status === "alert");
     };
 
-    // const filteredComponents = getFilteredAssets(getTargets());
     const filteredComponents = getFilteredAssets();
     const filteredAssets = new Map();
     const filteredLocations = new Map();
@@ -41,19 +39,29 @@ class CompanyData {
     filteredComponents.forEach((component) =>
       filteredAssets.set(component.id, component)
     );
-    assetsAndLocations.forEach((asset) => asMap.set(asset.id, asset));
+    getEligibleParents().forEach((asset) => asMap.set(asset.id, asset));
+    if(this.activeFilters.textSearch){
+      this.filteredLocations.forEach(location => {
+        filteredLocations.set(location.id, location)
+      })
+      this.filteredAssets.forEach(asset => {
+        filteredAssets.set(asset.id, asset)
+      })
+    }
 
     const addParents = (asset) => {
       if (!asset) return;
-      if (!asset.parentId && !asset.locationId) {
+      if (!asset.parentId && !asset.locationId && !filteredLocations.has(asset.id)) {
         filteredLocations.set(asset.id, asset);
         return;
       }
       const parent = asMap.get(asset.parentId) ?? asMap.get(asset.locationId);
+      if(!parent || filteredAssets.has(parent.id)) return;
       filteredAssets.set(parent.id, parent);
       addParents(parent);
     };
     filteredComponents.forEach(addParents);
+
     this.filteredLocations = filteredLocations;
     this.filteredAssets = filteredAssets;
     return { filteredLocations, filteredAssets };
@@ -92,8 +100,7 @@ class CompanyData {
           return;
         }
         const parent = asMap.get(asset.parentId) ?? asMap.get(asset.locationId)
-        if(!parent ) return
-        if(filteredAssets.has(parent.id)) return;
+        if(!parent || filteredAssets.has(parent.id)) return
         filteredAssets.set(parent.id, parent)
         addParents(parent);
       };

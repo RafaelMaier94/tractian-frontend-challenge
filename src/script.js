@@ -557,7 +557,7 @@ const handleClickComponent = (event, assets) => {
     responsibleAvatar.innerText =
       selectedComponent.responsible[0].toUpperCase();
   }
-  type.innerText = selectedComponent.type;
+  type.innerText = "Motor Elétrico (Trifásico)";
   sensor.innerText = selectedComponent.sensorId;
   gateway.innerText = selectedComponent.gatewayId;
   setTimeout(() => {

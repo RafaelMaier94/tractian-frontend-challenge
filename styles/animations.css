@@ -47,6 +47,17 @@
   }
 }
 
+@keyframes startFromRightDesktop {
+  from {
+    width: 0;
+    /* margin-left: 100%; */
+  }
+  to {
+    width: 54%;
+    /* flex-grow: 1; */
+  }
+}
+
 .scale-in-height{
   transition: height 0.5s;
   animation: 0.5s forwards scaleInHeight;
@@ -71,4 +82,9 @@
 .start-from-right {
   transition: width 0.5s;
   animation: 0.5s forwards startFromRight;
+}
+
+.start-from-right-desktop {
+  transition: width 0.5s;
+  animation: 0.5s forwards startFromRightDesktop;
 }

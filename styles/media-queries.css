@@ -1,4 +1,4 @@
-@media only screen and (min-width: 768px){
+@media only screen and (min-width: 769px){
     header{
       height: 48px;
       flex-direction: row;
@@ -29,11 +29,10 @@
       height: 100%;
       align-items: center;
     }
-    button.company-data{
+    /* button.company-data{
       display: flex;
       align-items: center;
       gap: 8px;
-      /* margin-left: 8px; */
       user-select: text;
       background: transparent;
       cursor: pointer;
@@ -57,15 +56,20 @@
       }
       button.company-data.open{
       
-      }
+      } */
 
 
     section#nav-bar{
         width: 45%;
 
     }
+    
     section.content-container.closed:not(.open){
       display: none;
+    }
+    section.content-container.open#assets-container{
+      width: 54%;
+      margin-left: 0;
     }
     section.content-container.open:not(.closed){
       display: flex;

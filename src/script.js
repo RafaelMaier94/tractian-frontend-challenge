@@ -1,12 +1,7 @@
 import { getCompanies, getCompanyAssets, getCompanyLocations } from "./api.js";
 import companyData from "./companyData.js";
 import { addTypesToAssets, dataTypeSVGMapper } from "./dataTypeMapper.js";
-import {
-  arrowSVG,
-  boltSVG,
-  companiesSVG,
-  locationsSVG,
-} from "./svgMappers.js";
+import { arrowSVG, boltSVG, companiesSVG, locationsSVG } from "./svgMappers.js";
 
 // OBS: ASSET 44, ID "6a99001c2615e600676e0d6b"
 // HAS STATUS = "ALERT"
@@ -56,19 +51,20 @@ async function loadCompanies() {
 function addListeners() {
   const innerWidth = window.innerWidth;
   if (innerWidth <= 768) {
-    const sections = document.getElementsByClassName("content-container");
-    Array.from(sections).forEach((section) => {
-      addEventListener("touchstart", handleTouchStart);
+    const sectionsContainer =
+      document.getElementsByClassName("sections-container");
+    Array.from(sectionsContainer).forEach((section) => {
+      section.addEventListener("touchstart", handleTouchStart);
     });
-    Array.from(sections).forEach((section) => {
-      addEventListener("touchend", handleTouchEnd);
+    Array.from(sectionsContainer).forEach((section) => {
+      section.addEventListener("touchend", handleTouchEnd);
     });
 
-    Array.from(sections).forEach((section) => {
-      addEventListener("dragstart", handleTouchStart);
+    Array.from(sectionsContainer).forEach((section) => {
+      section.addEventListener("dragstart", handleTouchStart);
     });
-    Array.from(sections).forEach((section) => {
-      addEventListener("dragend", handleTouchEnd);
+    Array.from(sectionsContainer).forEach((section) => {
+      section.addEventListener("dragend", handleTouchEnd);
     });
   }
 
@@ -78,16 +74,16 @@ function addListeners() {
 
 const handleClickFilter = async (event) => {
   const button = document.getElementById(event.target.id);
-  const isActive = button.classList.contains("active")
-  companyData.activeFilters[event.target.id] = !isActive
-  if(isActive){
+  const isActive = button.classList.contains("active");
+  companyData.activeFilters[event.target.id] = !isActive;
+  if (isActive) {
     button.classList.remove("active");
     button.classList.add("inactive");
-  }else{
+  } else {
     button.classList.remove("inactive");
     button.classList.add("active");
   }
-  if(companyData.noFiltersActive) return renderLocations();
+  if (companyData.noFiltersActive) return renderLocations();
   companyData.selectFilterStrategy();
   selectRenderStrategy()();
 };
@@ -102,8 +98,8 @@ function debounce(func, delay) {
   };
 }
 
-function selectRenderStrategy(){
-  if(companyData.noFiltersActive){
+function selectRenderStrategy() {
+  if (companyData.noFiltersActive) {
     return renderLocations;
   }
   return renderFilteredLocations;
@@ -124,10 +120,15 @@ const handleTouchEnd = (event) => {
   if (!startInteractionPosition) return;
   const endInteractionPosition = event.changedTouches[0].clientX;
   const diffPosition = endInteractionPosition - startInteractionPosition;
+  console.log({ startInteractionPosition });
+  console.log({ endInteractionPosition });
+  console.log({ diffPosition });
   const newPosition = diffPosition > 0 ? -1 : 1;
   const searchSection = document.getElementById("nav-bar");
   const assetsSection = document.getElementById("assets-container");
-  if (newPosition === 1) {
+  startInteractionPosition = 0;
+
+  if (diffPosition < -30) {
     searchSection.classList.remove("open");
     searchSection.classList.add("closed");
 
@@ -140,7 +141,9 @@ const handleTouchEnd = (event) => {
       // assetsSection.classList.remove("scaleInX")
       assetsSection.classList.add("start-from-right");
     }, 500);
-  } else {
+    return;
+  }
+  if (diffPosition > 30) {
     assetsSection.classList.remove("open");
     assetsSection.classList.add("closed");
 
@@ -155,12 +158,13 @@ const handleTouchEnd = (event) => {
 };
 
 async function handleClickUnitButton(event) {
+  console.log("inside");
   const {
     currentTarget: { id },
   } = event;
   const button = document.getElementById(event.currentTarget?.id);
-  const input = document.getElementById("search-text")
-  input.value = ""
+  const input = document.getElementById("search-text");
+  input.value = "";
   const isActive = (button) => button.classList.contains("active");
 
   const unitButtons = document.getElementsByClassName("unit");
@@ -218,7 +222,7 @@ function renderUnlinkedComponents(components, parent, assets) {
 function addArrowIfHasChildren(assets, parent, currentAsset) {
   const groupedByLocationAndParent = groupAssets(assets);
   const hasChildren = groupedByLocationAndParent[currentAsset.id];
-  if(currentAsset.type === "component"){
+  if (currentAsset.type === "component") {
     return;
   }
   if (hasChildren) {
@@ -230,7 +234,6 @@ function addArrowIfHasChildren(assets, parent, currentAsset) {
     parent.style.marginLeft = "18px";
   }
 }
-
 
 function renderFilteredLocations() {
   const locations = companyData.filteredLocations;
@@ -349,7 +352,11 @@ const groupAssets = (assets) => {
   return groupedByLocationAndParent;
 };
 
-const renderFilteredButtonsByType = (filteredAssets, parentId, allAssets = null) => {
+const renderFilteredButtonsByType = (
+  filteredAssets,
+  parentId,
+  allAssets = null
+) => {
   const parent = document.getElementById(parentId).parentElement;
   const parentContentContainer = parent.lastChild;
   const groupedByLocationAndParent = groupAssets(filteredAssets);
@@ -365,7 +372,6 @@ const renderFilteredButtonsByType = (filteredAssets, parentId, allAssets = null)
     const button = document.createElement("button");
     button.classList.add("company-data");
     button.id = asset.id;
-
 
     if (asset.type === "component") {
       renderComponent(asset, parentContentContainer, filteredAssets);
@@ -518,6 +524,9 @@ const handleClickComponent = (event, assets) => {
   const {
     target: { id },
   } = event;
+  const innerWidth = window.innerWidth;
+  const isSmallScreen = innerWidth <= 768
+
   const selectedComponent = assets.find((el) => el.id === id);
   const title = document.getElementById("asset-title");
   const responsible = document.getElementById("asset-responsible");
@@ -525,6 +534,22 @@ const handleClickComponent = (event, assets) => {
   const type = document.getElementById("asset-type");
   const sensor = document.getElementById("asset-sensor");
   const gateway = document.getElementById("asset-gateway");
+
+  const assetContainer = document.getElementById("assets-container");
+  const navBar = document.getElementById("nav-bar");
+  if(navBar.classList.contains("open") && isSmallScreen){
+    navBar.classList.remove("open")
+    navBar.classList.add("closed")
+  }
+  if (isSmallScreen) {
+    assetContainer.classList.add("start-from-right");
+  } else {
+    assetContainer.classList.add("start-from-right-desktop");
+  }
+  if (assetContainer.classList.contains("closed")) {
+    assetContainer.classList.remove("closed");
+    assetContainer.classList.add("open");
+  }
 
   title.innerText = selectedComponent.name;
   if (selectedComponent.responsible) {
@@ -535,6 +560,13 @@ const handleClickComponent = (event, assets) => {
   type.innerText = selectedComponent.type;
   sensor.innerText = selectedComponent.sensorId;
   gateway.innerText = selectedComponent.gatewayId;
+  setTimeout(() => {
+    if (isSmallScreen) {
+      assetContainer.classList.remove("start-from-right");
+    } else {
+      assetContainer.classList.remove("start-from-right-desktop");
+    }
+  }, 500)
 };
 
 const handleSidebarOpen = (event) => {

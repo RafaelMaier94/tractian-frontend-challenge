@@ -186,6 +186,7 @@ button.company-data{
   text-overflow: ellipsis;
   > * {
     pointer-events: none;
+    z-index: 1;
   }
   }
   div.company-data-content{
@@ -391,7 +392,7 @@ div.full-container{
   /* max-width: fit-content; */
   max-width: 100%;
   max-height: 100%;
-  overflow: hidden auto;
+  overflow: hidden;
 }
 
 

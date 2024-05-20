@@ -57,7 +57,26 @@
       button.company-data.open{
       
       } */
-
+      button.company-data{
+        position: relative;
+      }
+      button.company-data::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: #d3d3d3;
+        transition: left 0.5s;
+        z-index: 0;
+      }
+      
+      button.company-data:hover::before,
+      button.company-data:focus::before {
+        left: 0;
+      }
+    
 
     section#nav-bar{
         width: 45%;

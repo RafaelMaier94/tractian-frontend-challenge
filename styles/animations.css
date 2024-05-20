@@ -88,3 +88,46 @@
   transition: width 0.5s;
   animation: 0.5s forwards startFromRightDesktop;
 }
+
+/* #tractian-logo {
+  animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+} */
+/* #a{
+  fill:transparent;
+  stroke-width:1px;
+  stroke-dasharray:572;
+  stroke-dashoffset:572;
+  stroke:white; 
+  animation:StrokeLine 2s ease reverse, Fill 2s cubic-bezier(0.71, -1.06, 0.3, 1);
+}
+@keyframes StrokeLine{
+    0%{
+        stroke-dashoffset:0;
+    }                
+}            
+@keyframes Fill{
+    100%{
+        fill:white;                
+    }                
+} */
+
+#a {
+  fill: transparent;
+  stroke-width: 1px;
+  stroke-dasharray: 572;
+  stroke-dashoffset: 572;
+  stroke: white; 
+  animation: StrokeLine 2s ease reverse, Fill 2s cubic-bezier(0.71, -1.06, 0.3, 1) forwards;
+}
+
+@keyframes StrokeLine {
+  0% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes Fill {
+  100% {
+    fill: white;
+  }
+}
